@@ -1,37 +1,57 @@
 package entity;
 
+import config.DBConnection;
+
+import java.sql.*;
+import java.util.ArrayList;
+
 public class Venda {
-    private static int numVendas = 0;
-    private final Livro[] livros;
-    private final int numero;
-    private final String cliente;
+    private int id;
+    private String cliente;
     private double valor;
+    private ArrayList<Livro> livros;
 
-    public Venda(int quantidadeLivros, String cliente) {
-        this.livros = new Livro[quantidadeLivros];
-        this.numero = ++numVendas;
+    public Venda(String cliente) {
         this.cliente = cliente;
-        this.valor = 0;
+        this.livros = new ArrayList<>();
     }
 
-    public void addLivro(Livro l, int index) {
-        if (index >= 0 && index < livros.length) {
-            livros[index] = l;
-            valor += l.getPreco();
+    public void addLivro(Livro l) {
+        livros.add(l);
+        valor += l.getPreco();
+    }
+
+    public void save() throws SQLException {
+        Connection conn = DBConnection.getConnection();
+        String sql = "INSERT INTO venda (cliente, valor) VALUES (?, ?)";
+        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        stmt.setString(1, cliente);
+        stmt.setDouble(2, valor);
+        stmt.executeUpdate();
+
+        ResultSet generatedKeys = stmt.getGeneratedKeys();
+        if (generatedKeys.next()) {
+            id = generatedKeys.getInt(1);
         }
-    }
 
-    public void listarLivros() {
+        stmt.close();
+
         for (Livro livro : livros) {
-            if (livro != null) {
-                System.out.println(livro.toString());
-            }
+            String sqlVendaLivro = "INSERT INTO venda_livro (venda_id, livro_id) VALUES (?, ?)";
+            PreparedStatement stmtVendaLivro = conn.prepareStatement(sqlVendaLivro);
+            stmtVendaLivro.setInt(1, id);
+            stmtVendaLivro.setInt(2, livro.getId());
+            stmtVendaLivro.executeUpdate();
+            stmtVendaLivro.close();
         }
+
+        conn.close();
     }
 
     @Override
     public String toString() {
-        return "Venda Nº " + numero + ", Cliente: " + cliente + ", Valor Total: " + valor;
+        return "Venda Nº " + id + ", Cliente: " + cliente + ", Valor Total: " + valor;
     }
 }
+
 

@@ -1,169 +1,223 @@
 package entity;
 
+import config.DBConnection;
+
 import java.util.Scanner;
 
+import java.sql.*;
+
 public class LivrariaVirtual {
-    private static final int MAX_IMPRESSOS = 100;
-    private static final int MAX_ELETRONICOS = 100;
-    private static final int MAX_VENDAS = 50;
-
-    private final Impresso[] impressos;
-    private final Eletronico[] eletronicos;
-    private final Venda[] vendas;
-
-    private int numImpressos;
-    private int numEletronicos;
-    private int numVendas;
-
-    public LivrariaVirtual() {
-        impressos = new Impresso[MAX_IMPRESSOS];
-        eletronicos = new Eletronico[MAX_ELETRONICOS];
-        vendas = new Venda[MAX_VENDAS];
-        numImpressos = 0;
-        numEletronicos = 0;
-        numVendas = 0;
-    }
 
     public void cadastrarLivro() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Escolha o tipo de livro (1: Impresso, 2: Eletronico, 3: Ambos): ");
-        int tipo = scanner.nextInt();
+        System.out.println("Escolha o tipo de livro (1 - Impresso, 2 - Eletrônico): ");
+        int tipoLivro = scanner.nextInt();
         scanner.nextLine(); // Consume newline
 
-        if (tipo == 1 || tipo == 3) {
-            if (numImpressos < MAX_IMPRESSOS) {
-                System.out.print("Título: ");
-                String titulo = scanner.nextLine();
-                System.out.print("Autores: ");
-                String autores = scanner.nextLine();
-                System.out.print("Editora: ");
-                String editora = scanner.nextLine();
-                System.out.print("Preço: ");
-                double preco = scanner.nextDouble();
-                System.out.print("Frete: ");
-                double frete = scanner.nextDouble();
-                System.out.print("Estoque: ");
-                int estoque = scanner.nextInt();
-                impressos[numImpressos++] = new Impresso(titulo, autores, editora, preco, frete, estoque);
-            } else {
-                System.out.println("Capacidade máxima de livros impressos atingida!");
-            }
-        }
+        System.out.print("Digite o título: ");
+        String titulo = scanner.nextLine();
+        System.out.print("Digite os autores: ");
+        String autores = scanner.nextLine();
+        System.out.print("Digite a editora: ");
+        String editora = scanner.nextLine();
+        System.out.print("Digite o preço: ");
+        double preco = scanner.nextDouble();
 
-        if (tipo == 2 || tipo == 3) {
-            if (numEletronicos < MAX_ELETRONICOS) {
-                System.out.print("Título: ");
-                String titulo = scanner.nextLine();
-                System.out.print("Autores: ");
-                String autores = scanner.nextLine();
-                System.out.print("Editora: ");
-                String editora = scanner.nextLine();
-                System.out.print("Preço: ");
-                double preco = scanner.nextDouble();
-                System.out.print("Tamanho (em KB): ");
+        try {
+            Livro livro;
+            if (tipoLivro == 1) {
+                System.out.print("Digite o frete: ");
+                double frete = scanner.nextDouble();
+                System.out.print("Digite o estoque: ");
+                int estoque = scanner.nextInt();
+
+                livro = new Impresso(titulo, autores, editora, preco, frete, estoque);
+                livro.save();
+                livro.saveSpecificDetails();
+            } else if (tipoLivro == 2) {
+                System.out.print("Digite o tamanho do arquivo em KB: ");
                 double tamanho = scanner.nextDouble();
-                eletronicos[numEletronicos++] = new Eletronico(titulo, autores, editora, preco, tamanho);
+
+                livro = new Eletronico(titulo, autores, editora, preco, tamanho);
+                livro.save();
+                livro.saveSpecificDetails();
             } else {
-                System.out.println("Capacidade máxima de livros eletrônicos atingida!");
+                System.out.println("Tipo de livro inválido!");
+                return;
             }
+
+            System.out.println("Livro cadastrado com sucesso!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Erro ao cadastrar o livro!");
         }
     }
 
     public void realizarVenda() {
         Scanner scanner = new Scanner(System.in);
-        if (numVendas >= MAX_VENDAS) {
-            System.out.println("Capacidade máxima de vendas atingida!");
-            return;
-        }
-
-        System.out.print("Nome do cliente: ");
+        System.out.print("Digite o nome do cliente: ");
         String cliente = scanner.nextLine();
-        System.out.print("Quantidade de livros que deseja comprar: ");
-        int qtdLivros = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
 
-        Venda venda = new Venda(qtdLivros, cliente);
+        Venda venda = new Venda(cliente);
 
-        for (int i = 0; i < qtdLivros; i++) {
-            System.out.println("Escolha o tipo de livro (1: Impresso, 2: Eletronico): ");
-            int tipo = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+        while (true) {
+            System.out.print("Digite o ID do livro para adicionar à venda (0 para finalizar): ");
+            int idLivro = scanner.nextInt();
+            if (idLivro == 0) break;
 
-            if (tipo == 1) {
-                listarLivrosImpressos();
-                System.out.print("Escolha o número do livro impresso: ");
-                int escolha = scanner.nextInt();
-                if (escolha >= 0 && escolha < numImpressos) {
-                    venda.addLivro(impressos[escolha], i);
-                    impressos[escolha].atualizarEstoque();
+            try {
+                Livro livro = buscarLivroPorId(idLivro);
+                if (livro != null) {
+                    venda.addLivro(livro);
+                    if (livro instanceof Impresso) {
+                        ((Impresso) livro).atualizarEstoque();
+                    }
+                    System.out.println("Livro adicionado à venda!");
                 } else {
-                    System.out.println("Opção inválida!");
+                    System.out.println("Livro não encontrado!");
                 }
-            } else if (tipo == 2) {
-                listarLivrosEletronicos();
-                System.out.print("Escolha o número do livro eletrônico: ");
-                int escolha = scanner.nextInt();
-                if (escolha >= 0 && escolha < numEletronicos) {
-                    venda.addLivro(eletronicos[escolha], i);
-                } else {
-                    System.out.println("Opção inválida!");
-                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                System.out.println("Erro ao adicionar o livro à venda!");
             }
         }
 
-        vendas[numVendas++] = venda;
-    }
-
-    public void listarLivrosImpressos() {
-        System.out.println("Livros Impressos:");
-        for (int i = 0; i < numImpressos; i++) {
-            System.out.println(i + ": " + impressos[i].toString());
-        }
-    }
-
-    public void listarLivrosEletronicos() {
-        System.out.println("Livros Eletrônicos:");
-        for (int i = 0; i < numEletronicos; i++) {
-            System.out.println(i + ": " + eletronicos[i].toString());
+        try {
+            venda.save();
+            System.out.println("Venda realizada com sucesso!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Erro ao realizar a venda!");
         }
     }
 
     public void listarLivros() {
-        listarLivrosImpressos();
-        listarLivrosEletronicos();
-    }
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT * FROM livro";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
 
-    public void listarVendas() {
-        for (int i = 0; i < numVendas; i++) {
-            System.out.println(vendas[i].toString());
-            vendas[i].listarLivros();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String titulo = rs.getString("titulo");
+                String autores = rs.getString("autores");
+                String editora = rs.getString("editora");
+                double preco = rs.getDouble("preco");
+                String tipo = rs.getString("tipo");
+
+                Livro livro;
+                if (tipo.equals("IMPRESSO")) {
+                    String sqlImpresso = "SELECT * FROM impresso WHERE id = ?";
+                    PreparedStatement stmtImpresso = conn.prepareStatement(sqlImpresso);
+                    stmtImpresso.setInt(1, id);
+                    ResultSet rsImpresso = stmtImpresso.executeQuery();
+                    if (rsImpresso.next()) {
+                        double frete = rsImpresso.getDouble("frete");
+                        int estoque = rsImpresso.getInt("estoque");
+                        livro = new Impresso(id, titulo, autores, editora, preco, frete, estoque);
+                        System.out.println(livro);
+                    }
+                    stmtImpresso.close();
+                } else if (tipo.equals("ELETRONICO")) {
+                    String sqlEletronico = "SELECT * FROM eletronico WHERE id = ?";
+                    PreparedStatement stmtEletronico = conn.prepareStatement(sqlEletronico);
+                    stmtEletronico.setInt(1, id);
+                    ResultSet rsEletronico = stmtEletronico.executeQuery();
+                    if (rsEletronico.next()) {
+                        double tamanho = rsEletronico.getDouble("tamanho");
+                        livro = new Eletronico(id, titulo, autores, editora, preco, tamanho);
+                        System.out.println(livro);
+                    }
+                    stmtEletronico.close();
+                }
+            }
+
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Erro ao listar os livros!");
         }
     }
 
-    public static void main(String[] args) {
-        LivrariaVirtual livraria = new LivrariaVirtual();
-        Scanner scanner = new Scanner(System.in);
-        int opcao = 0;
+    public void listarVendas() {
+        try (Connection conn = DBConnection.getConnection()) {
+            String sql = "SELECT * FROM venda";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
 
-        do {
-            System.out.println("\nMenu:");
-            System.out.println("1. Cadastrar Livro");
-            System.out.println("2. Realizar Venda");
-            System.out.println("3. Listar Livros");
-            System.out.println("4. Listar Vendas");
-            System.out.println("5. Sair");
-            System.out.print("Escolha uma opção: ");
-            opcao = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String cliente = rs.getString("cliente");
+                double valor = rs.getDouble("valor");
 
-            switch (opcao) {
-                case 1 -> livraria.cadastrarLivro();
-                case 2 -> livraria.realizarVenda();
-                case 3 -> livraria.listarLivros();
-                case 4 -> livraria.listarVendas();
-                case 5 -> System.out.println("Saindo...");
-                default -> System.out.println("Opção inválida!");
+                Venda venda = new Venda(cliente);
+                System.out.println("Venda Nº " + id + ", Cliente: " + cliente + ", Valor Total: " + valor);
+
+                String sqlVendaLivros = "SELECT livro_id FROM venda_livro WHERE venda_id = ?";
+                PreparedStatement stmtVendaLivros = conn.prepareStatement(sqlVendaLivros);
+                stmtVendaLivros.setInt(1, id);
+                ResultSet rsVendaLivros = stmtVendaLivros.executeQuery();
+
+                while (rsVendaLivros.next()) {
+                    int idLivro = rsVendaLivros.getInt("livro_id");
+                    Livro livro = buscarLivroPorId(idLivro);
+                    if (livro != null) {
+                        System.out.println("   " + livro);
+                    }
+                }
+
+                stmtVendaLivros.close();
             }
-        } while (opcao != 5);
+
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Erro ao listar as vendas!");
+        }
+    }
+
+    private Livro buscarLivroPorId(int id) throws SQLException {
+        Connection conn = DBConnection.getConnection();
+        String sql = "SELECT * FROM livro WHERE id = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, id);
+        ResultSet rs = stmt.executeQuery();
+
+        Livro livro = null;
+        if (rs.next()) {
+            String titulo = rs.getString("titulo");
+            String autores = rs.getString("autores");
+            String editora = rs.getString("editora");
+            double preco = rs.getDouble("preco");
+            String tipo = rs.getString("tipo");
+
+            if (tipo.equals("IMPRESSO")) {
+                String sqlImpresso = "SELECT * FROM impresso WHERE id = ?";
+                PreparedStatement stmtImpresso = conn.prepareStatement(sqlImpresso);
+                stmtImpresso.setInt(1, id);
+                ResultSet rsImpresso = stmtImpresso.executeQuery();
+                if (rsImpresso.next()) {
+                    double frete = rsImpresso.getDouble("frete");
+                    int estoque = rsImpresso.getInt("estoque");
+                    livro = new Impresso(id, titulo, autores, editora, preco, frete, estoque);
+                }
+                stmtImpresso.close();
+            } else if (tipo.equals("ELETRONICO")) {
+                String sqlEletronico = "SELECT * FROM eletronico WHERE id = ?";
+                PreparedStatement stmtEletronico = conn.prepareStatement(sqlEletronico);
+                stmtEletronico.setInt(1, id);
+                ResultSet rsEletronico = stmtEletronico.executeQuery();
+                if (rsEletronico.next()) {
+                    double tamanho = rsEletronico.getDouble("tamanho");
+                    livro = new Eletronico(id, titulo, autores, editora, preco, tamanho);
+                }
+                stmtEletronico.close();
+            }
+        }
+
+        stmt.close();
+        conn.close();
+
+        return livro;
     }
 }
