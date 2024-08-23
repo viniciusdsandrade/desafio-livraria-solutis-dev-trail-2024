@@ -1,11 +1,10 @@
 package entity;
 
-import config.MysqlDBConnection;
+import config.MySQLConnection;
 
 import java.sql.*;
 
 public abstract class Livro {
-
     protected int id;
     protected String titulo;
     protected String autores;
@@ -38,24 +37,8 @@ public abstract class Livro {
         return id;
     }
 
-    public double getPreco() {
-        return preco;
-    }
-
-    public String getEditora() {
-        return editora;
-    }
-
-    public String getAutores() {
-        return autores;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
     public void save() throws SQLException {
-        Connection conn = MysqlDBConnection.getConnection();
+        Connection conn = MySQLConnection.getConnection();
         String sql = "INSERT INTO livro (titulo, autores, editora, preco, tipo) VALUES (?, ?, ?, ?, ?)";
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         stmt.setString(1, titulo);
@@ -79,40 +62,17 @@ public abstract class Livro {
     public abstract void saveSpecificDetails() throws SQLException;
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null) return false;
-        if (!(o instanceof Livro that)) return false;
-
-        return this.id == that.id &&
-                Double.compare(this.preco, that.preco) == 0 &&
-                this.titulo.equals(that.titulo) &&
-                this.autores.equals(that.autores) &&
-                this.editora.equals(that.editora);
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int hash = id;
-
-        hash *= prime + titulo.hashCode();
-        hash *= prime + autores.hashCode();
-        hash *= prime + editora.hashCode();
-        hash *= prime + Double.hashCode(preco);
-
-        if (hash < 0) hash = -hash;
-
-        return hash;
-    }
-
-    @Override
     public String toString() {
         return "{\n" +
-                "  \"Título\": \"" + titulo + "\",\n" +
-                "  \"Autores\": \"" + autores + "\",\n" +
-                "  \"Editora\": \"" + editora + "\",\n" +
-                "  \"Preço\": " + preco + "\n" +
+                "  \"id\": \"" + id + "\",\n" +
+                "  \"titulo\": \"" + titulo + "\",\n" +
+                "  \"autores\": \"" + autores + "\",\n" +
+                "  \"editora\": \"" + editora + "\",\n" +
+                "  \"preco\": \"" + preco + "\"\n" +
                 "}";
+    }
+
+    public double getPreco() {
+        return preco;
     }
 }

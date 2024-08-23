@@ -1,12 +1,11 @@
 package entity;
 
-import config.MysqlDBConnection;
-
 import java.sql.*;
 
-public class Eletronico extends Livro {
+import static config.MySQLConnection.getConnection;
 
-    private final double tamanho;
+public class Eletronico extends Livro {
+    private double tamanho;
 
     public Eletronico(String titulo,
                       String autores,
@@ -34,7 +33,7 @@ public class Eletronico extends Livro {
 
     @Override
     public void saveSpecificDetails() throws SQLException {
-        Connection conn = MysqlDBConnection.getConnection();
+        Connection conn = getConnection();
         String sql = "INSERT INTO eletronico (id, tamanho) VALUES (?, ?)";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setInt(1, id);
@@ -45,31 +44,14 @@ public class Eletronico extends Livro {
     }
 
     @Override
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Eletronico that)) return false;
-        if (!super.equals(o)) return false;
-
-        return Double.compare(tamanho, that.tamanho) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = super.hashCode();
-        final int prime = 31;
-
-        hash *= prime + Double.hashCode(tamanho);
-
-        if (hash < 0) hash = -hash;
-
-        return hash;
-    }
-
-    @Override
     public String toString() {
         return "{\n" +
-                "  \"super\": " + super.toString() + ",\n" +
-                "  \"tamanho\": " + tamanho + "KB\n" +
+                "  \"id\": \"" + id + "\",\n" +
+                "  \"titulo\": \"" + titulo + "\",\n" +
+                "  \"autores\": \"" + autores + "\",\n" +
+                "  \"editora\": \"" + editora + "\",\n" +
+                "  \"preco\": \"" + preco + "\",\n" +
+                "  \"tamanho\": \"" + tamanho + "KB\"\n" +
                 "}";
     }
 }

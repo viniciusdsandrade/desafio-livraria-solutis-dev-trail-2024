@@ -1,12 +1,11 @@
 package entity;
 
-import config.MysqlDBConnection;
-
 import java.sql.*;
 
-public class Impresso extends Livro {
+import static config.MySQLConnection.getConnection;
 
-    private final double frete;
+public class Impresso extends Livro {
+    private double frete;
     private int estoque;
 
     public Impresso(String titulo,
@@ -35,7 +34,7 @@ public class Impresso extends Livro {
     public void atualizarEstoque() throws SQLException {
         if (estoque > 0) {
             estoque--;
-            Connection conn = MysqlDBConnection.getConnection();
+            Connection conn = getConnection();
             String sql = "UPDATE impresso SET estoque = ? WHERE id = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, estoque);
@@ -53,7 +52,7 @@ public class Impresso extends Livro {
 
     @Override
     public void saveSpecificDetails() throws SQLException {
-        Connection conn = MysqlDBConnection.getConnection();
+        Connection conn = getConnection();
         String sql = "INSERT INTO impresso (id, frete, estoque) VALUES (?, ?, ?)";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setInt(1, id);
@@ -65,31 +64,13 @@ public class Impresso extends Livro {
     }
 
     @Override
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Impresso impresso)) return false;
-        if (!super.equals(o)) return false;
-
-        return Double.compare(frete, impresso.frete) == 0 &&
-                estoque == impresso.estoque;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = super.hashCode();
-        final int prime = 31;
-
-        hash *= prime + Double.hashCode(frete);
-        hash *= prime + estoque;
-
-        if (hash < 0) hash = -hash;
-
-        return hash;
-    }
-
-    @Override
     public String toString() {
         return "{\n" +
+                "  \"id\": \"" + id + "\",\n" +
+                "  \"titulo\": \"" + titulo + "\",\n" +
+                "  \"autores\": \"" + autores + "\",\n" +
+                "  \"editora\": \"" + editora + "\",\n" +
+                "  \"preco\": \"" + preco + "\",\n" +
                 "  \"frete\": \"" + frete + "\",\n" +
                 "  \"estoque\": \"" + estoque + "\"\n" +
                 "}";
