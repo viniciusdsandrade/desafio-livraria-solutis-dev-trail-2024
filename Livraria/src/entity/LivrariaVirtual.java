@@ -1,6 +1,6 @@
 package entity;
 
-import config.DBConnection;
+import config.MysqlDBConnection;
 
 import java.util.Scanner;
 
@@ -8,11 +8,30 @@ import java.sql.*;
 
 public class LivrariaVirtual {
 
+    private static final int MAX_IMPRESSOS = 100; // Número máximo de livros impressos que podem ser cadastrados
+    private static final int MAX_ELETRONICOS = 100; // Número máximo de livros eletrônicos que podem ser cadastrados
+    private static final int MAX_VENDAS = 100; // Número máximo de vendas que podem ser cadastradas
+
+    private final Impresso[] impressos = new Impresso[MAX_IMPRESSOS]; // Vetor de livros impressos cadastrados
+    private final Eletronico[] eletronicos = new Eletronico[MAX_ELETRONICOS]; // Vetor de livros eletrônicos cadastrados
+    private final Venda[] vendas = new Venda[MAX_VENDAS]; // Vetor de vendas realizadas
+
+    private int numImpressos = 0; // Número de livros impressos cadastrados
+    private int numEletronicos = 0; // Número de livros eletrônicos cadastrados
+    private int numVendas = 0; // Número de vendas realizadas
+
     public void cadastrarLivro() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Escolha o tipo de livro (1 - Impresso, 2 - Eletrônico): ");
+        System.out.println("Escolha o tipo de livro (1 - Impresso, 2 - Eletrônico, 3 - Ambos): ");
         int tipoLivro = scanner.nextInt();
         scanner.nextLine(); // Consume newline
+
+        if ((tipoLivro == 1 && numImpressos >= MAX_IMPRESSOS) ||
+                (tipoLivro == 2 && numEletronicos >= MAX_ELETRONICOS) ||
+                (tipoLivro == 3 && (numImpressos >= MAX_IMPRESSOS || numEletronicos >= MAX_ELETRONICOS))) {
+            System.out.println("Não há espaço para cadastrar mais livros.");
+            return;
+        }
 
         System.out.print("Digite o título: ");
         String titulo = scanner.nextLine();
@@ -23,37 +42,33 @@ public class LivrariaVirtual {
         System.out.print("Digite o preço: ");
         double preco = scanner.nextDouble();
 
-        try {
-            Livro livro;
-            if (tipoLivro == 1) {
+        if (tipoLivro == 1 || tipoLivro == 3) {
+            if (numImpressos < MAX_IMPRESSOS) {
                 System.out.print("Digite o frete: ");
                 double frete = scanner.nextDouble();
                 System.out.print("Digite o estoque: ");
                 int estoque = scanner.nextInt();
+                impressos[numImpressos++] = new Impresso(titulo, autores, editora, preco, frete, estoque);
+                System.out.println("Livro impresso cadastrado com sucesso!");
+            }
+        }
 
-                livro = new Impresso(titulo, autores, editora, preco, frete, estoque);
-                livro.save();
-                livro.saveSpecificDetails();
-            } else if (tipoLivro == 2) {
+        if (tipoLivro == 2 || tipoLivro == 3) {
+            if (numEletronicos < MAX_ELETRONICOS) {
                 System.out.print("Digite o tamanho do arquivo em KB: ");
                 double tamanho = scanner.nextDouble();
-
-                livro = new Eletronico(titulo, autores, editora, preco, tamanho);
-                livro.save();
-                livro.saveSpecificDetails();
-            } else {
-                System.out.println("Tipo de livro inválido!");
-                return;
+                eletronicos[numEletronicos++] = new Eletronico(titulo, autores, editora, preco, tamanho);
+                System.out.println("Livro eletrônico cadastrado com sucesso!");
             }
-
-            System.out.println("Livro cadastrado com sucesso!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Erro ao cadastrar o livro!");
         }
     }
 
-    public void realizarVenda() {
+    public void realizarVenda() throws SQLException {
+        if (numVendas >= MAX_VENDAS) {
+            System.out.println("Não há espaço para registrar mais vendas.");
+            return;
+        }
+
         Scanner scanner = new Scanner(System.in);
         System.out.print("Digite o nome do cliente: ");
         String cliente = scanner.nextLine();
@@ -61,123 +76,69 @@ public class LivrariaVirtual {
         Venda venda = new Venda(cliente);
 
         while (true) {
-            System.out.print("Digite o ID do livro para adicionar à venda (0 para finalizar): ");
-            int idLivro = scanner.nextInt();
-            if (idLivro == 0) break;
+            System.out.println("Escolha o tipo de livro para a venda (1 - Impresso, 2 - Eletrônico, 0 - Finalizar): ");
+            int tipoLivro = scanner.nextInt();
 
-            try {
-                Livro livro = buscarLivroPorId(idLivro);
-                if (livro != null) {
-                    venda.addLivro(livro);
-                    if (livro instanceof Impresso) {
-                        ((Impresso) livro).atualizarEstoque();
-                    }
-                    System.out.println("Livro adicionado à venda!");
+            if (tipoLivro == 0) break;
+
+            if (tipoLivro == 1) {
+                listarLivrosImpressos();
+                System.out.print("Digite o ID do livro impresso para adicionar à venda: ");
+                int idLivro = scanner.nextInt();
+                if (idLivro >= 0 && idLivro < numImpressos) {
+                    venda.addLivro(impressos[idLivro]);
+                    impressos[idLivro].atualizarEstoque();
+                    System.out.println("Livro impresso adicionado à venda!");
                 } else {
-                    System.out.println("Livro não encontrado!");
+                    System.out.println("Livro impresso não encontrado!");
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                System.out.println("Erro ao adicionar o livro à venda!");
+            } else if (tipoLivro == 2) {
+                listarLivrosEletronicos();
+                System.out.print("Digite o ID do livro eletrônico para adicionar à venda: ");
+                int idLivro = scanner.nextInt();
+                if (idLivro >= 0 && idLivro < numEletronicos) {
+                    venda.addLivro(eletronicos[idLivro]);
+                    System.out.println("Livro eletrônico adicionado à venda!");
+                } else {
+                    System.out.println("Livro eletrônico não encontrado!");
+                }
+            } else {
+                System.out.println("Tipo de livro inválido!");
             }
         }
 
-        try {
-            venda.save();
-            System.out.println("Venda realizada com sucesso!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Erro ao realizar a venda!");
+        vendas[numVendas++] = venda;
+        System.out.println("Venda realizada com sucesso!");
+    }
+
+    public void listarLivrosImpressos() {
+        System.out.println("Lista de Livros Impressos:");
+        for (int i = 0; i < numImpressos; i++) {
+            System.out.println(impressos[i]);
+        }
+    }
+
+    public void listarLivrosEletronicos() {
+        System.out.println("Lista de Livros Eletrônicos:");
+        for (int i = 0; i < numEletronicos; i++) {
+            System.out.println(eletronicos[i]);
         }
     }
 
     public void listarLivros() {
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT * FROM livro";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String titulo = rs.getString("titulo");
-                String autores = rs.getString("autores");
-                String editora = rs.getString("editora");
-                double preco = rs.getDouble("preco");
-                String tipo = rs.getString("tipo");
-
-                Livro livro;
-                if (tipo.equals("IMPRESSO")) {
-                    String sqlImpresso = "SELECT * FROM impresso WHERE id = ?";
-                    PreparedStatement stmtImpresso = conn.prepareStatement(sqlImpresso);
-                    stmtImpresso.setInt(1, id);
-                    ResultSet rsImpresso = stmtImpresso.executeQuery();
-                    if (rsImpresso.next()) {
-                        double frete = rsImpresso.getDouble("frete");
-                        int estoque = rsImpresso.getInt("estoque");
-                        livro = new Impresso(id, titulo, autores, editora, preco, frete, estoque);
-                        System.out.println(livro);
-                    }
-                    stmtImpresso.close();
-                } else if (tipo.equals("ELETRONICO")) {
-                    String sqlEletronico = "SELECT * FROM eletronico WHERE id = ?";
-                    PreparedStatement stmtEletronico = conn.prepareStatement(sqlEletronico);
-                    stmtEletronico.setInt(1, id);
-                    ResultSet rsEletronico = stmtEletronico.executeQuery();
-                    if (rsEletronico.next()) {
-                        double tamanho = rsEletronico.getDouble("tamanho");
-                        livro = new Eletronico(id, titulo, autores, editora, preco, tamanho);
-                        System.out.println(livro);
-                    }
-                    stmtEletronico.close();
-                }
-            }
-
-            stmt.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Erro ao listar os livros!");
-        }
+        listarLivrosImpressos();
+        listarLivrosEletronicos();
     }
 
     public void listarVendas() {
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT * FROM venda";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String cliente = rs.getString("cliente");
-                double valor = rs.getDouble("valor");
-
-                Venda venda = new Venda(cliente);
-                System.out.println("Venda Nº " + id + ", Cliente: " + cliente + ", Valor Total: " + valor);
-
-                String sqlVendaLivros = "SELECT livro_id FROM venda_livro WHERE venda_id = ?";
-                PreparedStatement stmtVendaLivros = conn.prepareStatement(sqlVendaLivros);
-                stmtVendaLivros.setInt(1, id);
-                ResultSet rsVendaLivros = stmtVendaLivros.executeQuery();
-
-                while (rsVendaLivros.next()) {
-                    int idLivro = rsVendaLivros.getInt("livro_id");
-                    Livro livro = buscarLivroPorId(idLivro);
-                    if (livro != null) {
-                        System.out.println("   " + livro);
-                    }
-                }
-
-                stmtVendaLivros.close();
-            }
-
-            stmt.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Erro ao listar as vendas!");
+        System.out.println("Lista de Vendas:");
+        for (int i = 0; i < numVendas; i++) {
+            System.out.println("Venda Nº " + (i + 1) + ": " + vendas[i]);
         }
     }
 
     private Livro buscarLivroPorId(int id) throws SQLException {
-        Connection conn = DBConnection.getConnection();
+        Connection conn = MysqlDBConnection.getConnection();
         String sql = "SELECT * FROM livro WHERE id = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setInt(1, id);
