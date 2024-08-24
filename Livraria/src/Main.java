@@ -10,9 +10,6 @@ public class Main {
         // Verificação de consistência ao iniciar o sistema
         livraria.verificarConsistencia();
 
-        System.out.println("Bem-vindo à Livraria Virtual!");
-        System.out.println(livraria);
-
         while (true) {
             System.out.print("""
                      \nMenu:
@@ -22,6 +19,7 @@ public class Main {
                      4 - Listar vendas
                      0 - Sair
                     Escolha uma opção:\s""");
+
             opcao = entrada.nextInt();
             entrada.nextLine(); // Consume newline
 
@@ -34,7 +32,7 @@ public class Main {
                     System.out.println("Saindo...");
                     return;
                 }
-                default -> System.out.println("Opção inválida!");
+                default -> System.err.println("Opção inválida!");
             }
         }
     }

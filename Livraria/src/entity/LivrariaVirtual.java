@@ -72,7 +72,6 @@ public class LivrariaVirtual {
     private int numEletronicos = 0;     // Número de livros eletrônicos cadastrados
     private int numVendas = 0;          // Número de vendas realizadas
 
-
     public void verificarConsistencia() {
         try (Connection conn = getConnection()) {
             // Verificar contagem de livros impressos
@@ -93,29 +92,31 @@ public class LivrariaVirtual {
             ResultSet rsVendas = stmtVendas.executeQuery();
             if (rsVendas.next()) numVendas = rsVendas.getInt("total");
 
-            System.out.println("Consistência verificada: ");
-            System.out.println("Livros impressos cadastrados: " + numImpressos);
-            System.out.println("Livros eletrônicos cadastrados: " + numEletronicos);
-            System.out.println("Vendas realizadas: " + numVendas);
-
+            System.out.print("""
+                    Consistência verificada:
+                    Livros impressos cadastrados:\s""" + numImpressos + """
+                    Livros eletrônicos cadastrados:\s""" + numEletronicos + """
+                    Vendas realizadas:\s""" + numVendas + """
+                    """);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            System.out.println("Erro ao verificar a consistência do sistema!");
+            System.err.println("Erro ao verificar a consistência do sistema!");
         }
     }
 
     public void cadastrarLivro() {
         if (numImpressos >= MAX_IMPRESSOS && numEletronicos >= MAX_ELETRONICOS) {
-            System.out.println("Limite de livros cadastrados atingido. Não é possível cadastrar mais livros.");
+            System.err.println("Limite de livros cadastrados atingido. Não é possível cadastrar mais livros.");
             return;
         }
 
         String titulo, autores, editora;
+        int tipoLivro, estoque;
         double preco, frete;
         long tamanho;
-        int tipoLivro, estoque;
 
         tipoLivro = lerTipoLivro();
+
         if (tipoLivro == 3) {
             System.out.println("Operação cancelada.");
             return;
@@ -130,7 +131,7 @@ public class LivrariaVirtual {
             Livro livro;
             if (tipoLivro == 1) {
                 if (numImpressos >= MAX_IMPRESSOS) {
-                    System.out.println("Limite de livros impressos cadastrados atingido.");
+                    System.err.println("Limite de livros impressos cadastrados atingido.");
                     return;
                 }
 
@@ -140,11 +141,11 @@ public class LivrariaVirtual {
                 livro = new Impresso(titulo, autores, editora, preco, frete, estoque);
                 livro.save();
                 livro.saveSpecificDetails();
-                impressos[numImpressos++] = (Impresso) livro; // Atualiza o vetor de impressos
 
+                impressos[numImpressos++] = (Impresso) livro; // Atualiza o vetor de impressos
             } else if (tipoLivro == 2) {
                 if (numEletronicos >= MAX_ELETRONICOS) {
-                    System.out.println("Limite de livros eletrônicos cadastrados atingido.");
+                    System.err.println("Limite de livros eletrônicos cadastrados atingido.");
                     return;
                 }
 
@@ -155,22 +156,21 @@ public class LivrariaVirtual {
                 livro.saveSpecificDetails();
 
                 eletronicos[numEletronicos++] = (Eletronico) livro; // Atualiza o vetor de eletrônicos
-
             } else {
-                System.out.println("Tipo de livro inválido!");
+                System.err.println("Tipo de livro inválido!");
                 return;
             }
 
             System.out.println("Livro cadastrado com sucesso!");
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            System.out.println("Erro ao cadastrar o livro!");
+            System.err.println("Erro ao cadastrar o livro!");
         }
     }
 
     public void realizarVenda() {
         if (numVendas >= MAX_VENDAS) {
-            System.out.println("Limite de vendas atingido. Não é possível realizar mais vendas.");
+            System.err.println("Limite de vendas atingido. Não é possível realizar mais vendas.");
             return;
         }
 
@@ -193,7 +193,7 @@ public class LivrariaVirtual {
                     quantidade = lerQuantidade();
 
                     if (livro instanceof Impresso && quantidade > ((Impresso) livro).getEstoque()) {
-                        System.out.println("Desculpe, não há estoque suficiente.");
+                        System.err.println("Desculpe, não há estoque suficiente.");
                     } else if (quantidade > 0) {
                         venda.addLivro(livro, quantidade); // Passa a quantidade
                         if (livro instanceof Impresso) {
@@ -201,14 +201,14 @@ public class LivrariaVirtual {
                         }
                         System.out.println("Livro adicionado à venda!");
                     } else {
-                        System.out.println("Quantidade inválida.");
+                        System.err.println("Quantidade inválida.");
                     }
                 } else {
-                    System.out.println("Livro não encontrado!");
+                    System.err.println("Livro não encontrado!");
                 }
             } catch (SQLException e) {
                 System.err.println(e.getMessage());
-                System.out.println("Erro ao adicionar o livro à venda!");
+                System.err.println("Erro ao adicionar o livro à venda!");
             }
         }
 
@@ -218,7 +218,7 @@ public class LivrariaVirtual {
             System.out.println("Venda realizada com sucesso!");
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            System.out.println("Erro ao realizar a venda!");
+            System.err.println("Erro ao realizar a venda!");
         }
     }
 
@@ -236,12 +236,15 @@ public class LivrariaVirtual {
             ResultSet rs = stmt.executeQuery();
 
             if (!rs.isBeforeFirst()) {
-                System.out.println("Não há livros cadastrados.");
+                System.err.println("Não há livros cadastrados.");
                 return;
             }
 
             System.out.println("Lista de Livros Disponíveis:");
-            System.out.println("ID | Título | Preço | Estoque");
+            System.out.println("-------------------------------------------------------------------");
+            System.out.printf("%-5s | %-30s | %-10s | %-10s\n", "ID", "Título", "Preço", "Estoque");
+            System.out.println("-------------------------------------------------------------------");
+
             int id, estoque;
             String titulo;
             double preco;
@@ -252,12 +255,14 @@ public class LivrariaVirtual {
                 preco = rs.getDouble("preco");
                 estoque = rs.getInt("estoque");
 
-                System.out.println(id + " | " + titulo + " | R$ " + preco + " | Estoque: " + estoque);
+                // Impressão formatada dos dados
+                System.out.printf("%-5d | %-30s | R$ %-8.2f | %-10d\n", id, titulo, preco, estoque);
             }
+            System.out.println("-------------------------------------------------------------------");
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            System.out.println("Erro ao listar os livros!");
+            System.err.println("Erro ao listar os livros!");
         }
     }
 
@@ -276,7 +281,7 @@ public class LivrariaVirtual {
 
             // Verifica se há algum resultado no ResultSet
             if (!rs.isBeforeFirst()) {
-                System.out.println("Não há livros cadastrados.");
+                System.err.println("Não há livros cadastrados.");
                 return; // Sai do metodo se não houver livros
             }
 
@@ -304,7 +309,7 @@ public class LivrariaVirtual {
             }
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            System.out.println("Erro ao listar os livros!");
+            System.err.println("Erro ao listar os livros!");
         }
     }
 
@@ -324,10 +329,11 @@ public class LivrariaVirtual {
                 valorTotal = rs.getDouble("valor");
 
                 System.out.println("\n------------------------------");
-                System.out.println("Venda Nº " + id);
-                System.out.println("Cliente: " + cliente);
-                System.out.println("Valor Total: R$ " + String.format("%.2f", valorTotal));
-                System.out.println("Livros:");
+                System.out.print("""
+                        Venda Nº\s""" + id + """
+                        Cliente:\s""" + cliente + """
+                        Valor Total: R$\s""" + String.format("%.2f", valorTotal) + """
+                        Livros:\s""");
 
                 String sqlVendaLivros = """
                                                 SELECT livro_id \
@@ -354,7 +360,7 @@ public class LivrariaVirtual {
             stmt.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            System.out.println("Erro ao listar as vendas!");
+            System.err.println("Erro ao listar as vendas!");
         }
     }
 
@@ -411,27 +417,35 @@ public class LivrariaVirtual {
     public static int getMaxImpressos() {
         return MAX_IMPRESSOS;
     }
+
     public static int getMaxEletronicos() {
         return MAX_ELETRONICOS;
     }
+
     public static int getMaxVendas() {
         return MAX_VENDAS;
     }
+
     public Eletronico[] getEletronicos() {
         return eletronicos;
     }
+
     public Impresso[] getImpressos() {
         return impressos;
     }
+
     public Venda[] getVendas() {
         return vendas;
     }
+
     public int getNumEletronicos() {
         return numEletronicos;
     }
+
     public int getNumImpressos() {
         return numImpressos;
     }
+
     public int getNumVendas() {
         return numVendas;
     }
@@ -439,18 +453,23 @@ public class LivrariaVirtual {
     public void setImpressos(Impresso[] impressos) {
         this.impressos = impressos;
     }
+
     public void setVendas(Venda[] vendas) {
         this.vendas = vendas;
     }
+
     public void setEletronicos(Eletronico[] eletronicos) {
         this.eletronicos = eletronicos;
     }
+
     public void setNumImpressos(int numImpressos) {
         this.numImpressos = numImpressos;
     }
+
     public void setNumEletronicos(int numEletronicos) {
         this.numEletronicos = numEletronicos;
     }
+
     public void setNumVendas(int numVendas) {
         this.numVendas = numVendas;
     }

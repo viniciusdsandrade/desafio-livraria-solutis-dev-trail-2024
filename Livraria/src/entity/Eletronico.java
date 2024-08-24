@@ -58,6 +58,7 @@ public class Eletronico extends Livro {
         return tamanho;
     }
     public void setTamanho(long tamanho) {
+        if (tamanho <= 0) throw new IllegalArgumentException("O tamanho do arquivo deve ser maior que zero.");
         this.tamanho = tamanho;
     }
 

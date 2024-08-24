@@ -1,8 +1,9 @@
 package entity;
 
-import config.MySQLConnection;
-
 import java.sql.*;
+
+import static config.MySQLConnection.getConnection;
+import static java.lang.Double.compare;
 
 /*
     3.1 Livro
@@ -19,8 +20,8 @@ import java.sql.*;
     O outro metodo obrigatório da classe Livro é descrito a seguir:
         a) String toString(): devolve uma representação textual dos atributos de umlivro.
  */
-
 public abstract class Livro {
+
     protected int id;
     protected String titulo;
     protected String autores;
@@ -50,7 +51,7 @@ public abstract class Livro {
     }
 
     public void save() throws SQLException {
-        Connection conn = MySQLConnection.getConnection();
+        Connection conn = getConnection();
         String sql = "INSERT INTO livro (titulo, autores, editora, preco, tipo) VALUES (?, ?, ?, ?, ?)";
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -59,6 +60,7 @@ public abstract class Livro {
         stmt.setString(3, editora);
         stmt.setDouble(4, preco);
         stmt.setString(5, getTipo());
+
         stmt.executeUpdate();
 
         ResultSet generatedKeys = stmt.getGeneratedKeys();
@@ -110,7 +112,7 @@ public abstract class Livro {
         if (!(o instanceof Livro that)) return false;
 
         return this.id == that.id &&
-                Double.compare(this.preco, that.preco) == 0 &&
+                compare(this.preco, that.preco) == 0 &&
                 this.titulo.equals(that.titulo) &&
                 this.autores.equals(that.autores) &&
                 this.editora.equals(that.editora);

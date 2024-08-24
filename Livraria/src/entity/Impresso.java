@@ -59,7 +59,7 @@ public class Impresso extends Livro {
             conn.close();
         } else {
             // Lidar com a situação em que não há estoque suficiente (opcional)
-            System.out.println("Estoque insuficiente para a quantidade solicitada.");
+            System.err.println("Estoque insuficiente para a quantidade solicitada.");
         }
     }
 

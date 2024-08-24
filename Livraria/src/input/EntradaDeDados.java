@@ -12,21 +12,21 @@ public class EntradaDeDados {
     public static int lerTipoLivro() {
         int tipoLivro;
         do {
-            System.out.println("Escolha o tipo de livro:");
-            System.out.println("1 - Impresso");
-            System.out.println("2 - Eletrônico");
-            System.out.println("3 - Sair");
-            System.out.print("Digite a opção desejada: ");
+            System.out.print("""
+                    Escolha o tipo de livro:
+                    1 - Impresso
+                    2 - Eletrônico
+                    3 - Sair
+                    Digite a opção desejada:\s""");
 
             while (!entrada.hasNextInt()) {
-                System.out.println("Opção inválida. Digite um número inteiro (1, 2 ou 3).");
+                System.err.println("Opção inválida. Digite um número inteiro (1, 2 ou 3).");
                 entrada.next(); // Limpa a entrada inválida do scanner
             }
             tipoLivro = entrada.nextInt();
 
-            if (tipoLivro < 1 || tipoLivro > 3) {
-                System.out.println("Opção inválida. Por favor, escolha 1, 2 ou 3.");
-            }
+            if (tipoLivro < 1 || tipoLivro > 3)
+                System.err.println("Opção inválida. Por favor, escolha 1, 2 ou 3.");
         } while (tipoLivro < 1 || tipoLivro > 3);
 
         return tipoLivro;
@@ -58,17 +58,13 @@ public class EntradaDeDados {
 
                 // Substitui a vírgula por ponto, se necessário
                 input = input.replace(",", ".");
-
                 preco = parseDouble(input);
 
                 // Verifica se o preço é positivo
-                if (preco <= 0) {
-                    System.out.println("O preço não pode ser negativo ou nulo. Tente novamente.");
-                } else {
-                    return preco;
-                }
+                if (preco <= 0) System.err.println("O preço não pode ser negativo ou nulo. Tente novamente.");
+                else return preco;
             } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
+                System.err.println("Entrada inválida. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
             }
         }
     }
@@ -84,12 +80,9 @@ public class EntradaDeDados {
 
             try {
                 frete = parseDouble(input);
-
-                if (frete < 0) {
-                    System.out.println("O frete não pode ser negativo.");
-                }
+                if (frete < 0) System.err.println("O frete não pode ser negativo.");
             } catch (NumberFormatException e) {
-                System.out.println("Frete inválido. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
+                System.err.println("Frete inválido. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
                 frete = -1; // Força a repetição do loop
             }
 
@@ -102,14 +95,13 @@ public class EntradaDeDados {
         do {
             System.out.print("Digite o estoque: ");
             while (!entrada.hasNextInt()) {
-                System.out.println("Estoque inválido. Digite um número inteiro.");
+                System.err.println("Estoque inválido. Digite um número inteiro.");
                 entrada.next(); // Limpa a entrada inválida
             }
+
             estoque = entrada.nextInt();
 
-            if (estoque < 0) {
-                System.out.println("O estoque não pode ser negativo.");
-            }
+            if (estoque < 0) System.err.println("O estoque não pode ser negativo.");
         } while (estoque < 0);
         return estoque;
     }
@@ -119,12 +111,13 @@ public class EntradaDeDados {
         do {
             System.out.print("Digite o tamanho do arquivo em KB: ");
             while (!entrada.hasNextLong()) {
-                System.out.println("Tamanho inválido. Digite um número inteiro.");
+                System.err.println("Tamanho inválido. Digite um número inteiro.");
                 entrada.next(); // Limpa a entrada inválida
             }
+
             tamanho = entrada.nextLong();
 
-            if (tamanho <= 0) System.out.println("O tamanho do arquivo deve ser maior que zero.");
+            if (tamanho <= 0) System.err.println("O tamanho do arquivo deve ser maior que zero.");
         } while (tamanho <= 0);
         return tamanho;
     }
@@ -137,7 +130,7 @@ public class EntradaDeDados {
                 input = entrada.nextLine();
                 return parseInt(input);
             } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Digite um número inteiro.");
+                System.err.println("Entrada inválida. Digite um número inteiro.");
             }
         }
     }
@@ -148,9 +141,9 @@ public class EntradaDeDados {
             try {
                 quantidade = parseInt(entrada.nextLine());
                 if (quantidade >= 0) return quantidade;
-                else System.out.println("Por favor, insira uma quantidade válida (0 ou mais).");
+                else System.err.println("Por favor, insira uma quantidade válida (0 ou mais).");
             } catch (NumberFormatException e) {
-                System.out.println("Por favor, insira um número válido.");
+                System.err.println("Por favor, insira um número válido.");
             }
         }
     }
