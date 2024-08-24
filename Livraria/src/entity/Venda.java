@@ -3,22 +3,57 @@ package entity;
 import config.MySQLConnection;
 
 import java.sql.*;
-import java.util.ArrayList;
 
+/*
+3.4 Venda
+A classe Venda possui 5 atributos:
+    a) livros: um vetor de referências a objetos do tipo Livro. Representa os livros associados a uma venda;
+    b) numVendas: atributo estático que representa a quantidade de vendas
+    realizadas. Deve ser incrementado de 1 sempre que uma nova venda for realizada;
+    c) numero: representa o número da venda. É um valor sequencial com
+    início em 1 e é incrementado a cada venda. Utilize o valor do
+    atributo numVendas para definir o valor desse atributo;
+    d) cliente: nome do cliente que comprou o(s) livro(s);
+    e) valor: valor total da venda. A seguir são descritos os métodos da
+    
+    classe Venda:
+    a) addLivro(l: Livro, index: int): adiciona o livro l na posição index do array livros;
+    b) listarLivros(): lista todos os livros da venda.
+ */
 public class Venda {
+    private static int numVendas = 0;
+
     private int id;
+    private int numero;
     private String cliente;
     private double valor;
-    private ArrayList<Livro> livros;
+    private final Livro[] livros;
 
     public Venda(String cliente) {
         this.cliente = cliente;
-        this.livros = new ArrayList<>();
+        this.livros = new Livro[100]; // Tamanho inicial do vetor, pode ser ajustado
+        this.numero = ++numVendas;
+        this.valor = 0;
     }
 
-    public void addLivro(Livro l) {
-        livros.add(l);
-        valor += l.getPreco();
+    public void addLivro(Livro l, int quantidade) {
+        for (int i = 0; i < livros.length; i++) {
+            if (livros[i] == null) {
+                livros[i] = l;
+                valor += l.getPreco() * quantidade; // Multiplique o preço pela quantidade
+                return;
+            }
+        }
+        // Se o vetor estiver cheio, você pode aumentar o tamanho ou lançar uma exceção
+        System.out.println("Vetor de livros cheio!");
+    }
+
+    public void listarLivros() {
+        for (Livro livro : livros) {
+            if (livro != null) {
+                System.out.println(livro);
+            }
+        }
     }
 
     public void save() throws SQLException {
@@ -35,15 +70,49 @@ public class Venda {
         stmt.close();
 
         for (Livro livro : livros) {
-            String sqlVendaLivro = "INSERT INTO venda_livro (venda_id, livro_id) VALUES (?, ?)";
-            PreparedStatement stmtVendaLivro = conn.prepareStatement(sqlVendaLivro);
-            stmtVendaLivro.setInt(1, id);
-            stmtVendaLivro.setInt(2, livro.getId());
-            stmtVendaLivro.executeUpdate();
-            stmtVendaLivro.close();
+            if (livro != null) {
+                String sqlVendaLivro = "INSERT INTO venda_livro (venda_id, livro_id) VALUES (?, ?)";
+                PreparedStatement stmtVendaLivro = conn.prepareStatement(sqlVendaLivro);
+                stmtVendaLivro.setInt(1, id);
+                stmtVendaLivro.setInt(2, livro.getId());
+                stmtVendaLivro.executeUpdate();
+                stmtVendaLivro.close();
+            }
         }
 
         conn.close();
+    }
+
+    public static int getNumVendas() {
+        return numVendas;
+    }
+    public int getId() {
+        return id;
+    }
+    public double getValor() {
+        return valor;
+    }
+    public String getCliente() {
+        return cliente;
+    }
+    public int getNumero() {
+        return numero;
+    }
+
+    public static void setNumVendas(int numVendas) {
+        Venda.numVendas = numVendas;
+    }
+    public void setValor(double valor) {
+        this.valor = valor;
+    }
+    public void setCliente(String cliente) {
+        this.cliente = cliente;
+    }
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override
@@ -53,14 +122,20 @@ public class Venda {
         json.append("{")
                 .append("\"id\": ").append(id).append(", ")
                 .append("\"cliente\": \"").append(cliente).append("\", ")
-                .append("\"valor\": ").append(valor).append(", ")
+                .append("\"valorTotal\": ").append(valor).append(", ") // Nome mais descritivo
                 .append("\"livros\": [");
 
-        for (int i = 0; i < livros.size(); i++) {
-            json.append(livros.get(i).toString()); // Presume que Livro tenha um toString que segue o padrão JSON
-            if (i < livros.size() - 1) {
-                json.append(", ");
+        for (Livro livro : livros) {
+            if (livro != null) {
+                json.append("{");
+                json.append("\"nome\": \"").append(livro.getTitulo()).append("\", ");
+                json.append("\"valorUnitario\": ").append(livro.getPreco());
+
             }
+        }
+
+        if (json.toString().endsWith(", ")) {
+            json.delete(json.length() - 2, json.length());
         }
 
         json.append("]")
@@ -69,5 +144,3 @@ public class Venda {
         return json.toString();
     }
 }
-
-

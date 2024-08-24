@@ -5,13 +5,14 @@ import java.sql.*;
 import static config.MySQLConnection.getConnection;
 
 public class Eletronico extends Livro {
-    private double tamanho;
+
+    private long tamanho;
 
     public Eletronico(String titulo,
                       String autores,
                       String editora,
                       double preco,
-                      double tamanho) {
+                      long tamanho) {
         super(titulo, autores, editora, preco);
         this.tamanho = tamanho;
     }
@@ -21,7 +22,7 @@ public class Eletronico extends Livro {
                       String autores,
                       String editora,
                       double preco,
-                      double tamanho) {
+                      long tamanho) {
         super(id, titulo, autores, editora, preco);
         this.tamanho = tamanho;
     }
@@ -43,14 +44,18 @@ public class Eletronico extends Livro {
         conn.close();
     }
 
+    public double getTamanho() {
+        return tamanho;
+    }
+    public void setTamanho(long tamanho) {
+        this.tamanho = tamanho;
+    }
+
     @Override
     public String toString() {
         return String.format(
-                "ID: %d, Título: %s, Autores: %s, Editora: %s, Preço: %.2f, Tamanho: %.2f KB",
+                "ID: %d, Título: %s, Autores: %s, Editora: %s, Preço: %.2f, Tamanho: %d KB",
                 id, titulo, autores, editora, preco, tamanho
         );
     }
-
 }
-
-

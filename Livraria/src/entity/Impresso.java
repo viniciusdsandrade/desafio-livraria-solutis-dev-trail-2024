@@ -31,9 +31,9 @@ public class Impresso extends Livro {
         this.estoque = estoque;
     }
 
-    public void atualizarEstoque() throws SQLException {
-        if (estoque > 0) {
-            estoque--;
+    public void atualizarEstoque(int quantidade) throws SQLException { // Recebe a quantidade como parâmetro
+        if (estoque >= quantidade) { // Verifica se há estoque suficiente
+            estoque -= quantidade; // Subtrai a quantidade do estoque
             Connection conn = getConnection();
             String sql = "UPDATE impresso SET estoque = ? WHERE id = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -42,6 +42,9 @@ public class Impresso extends Livro {
             stmt.executeUpdate();
             stmt.close();
             conn.close();
+        } else {
+            // Lidar com a situação em que não há estoque suficiente (opcional)
+            System.out.println("Estoque insuficiente para a quantidade solicitada.");
         }
     }
 
@@ -63,6 +66,20 @@ public class Impresso extends Livro {
         conn.close();
     }
 
+    public int getEstoque() {
+        return estoque;
+    }
+    public double getFrete() {
+        return frete;
+    }
+
+    public void setEstoque(int estoque) {
+        this.estoque = estoque;
+    }
+    public void setFrete(double frete) {
+        this.frete = frete;
+    }
+
     @Override
     public String toString() {
         return String.format(
@@ -70,5 +87,4 @@ public class Impresso extends Livro {
                 id, titulo, autores, editora, preco, frete, estoque
         );
     }
-
 }

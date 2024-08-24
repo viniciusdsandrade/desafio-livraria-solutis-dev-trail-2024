@@ -110,15 +110,15 @@ public class EntradaDeDados {
         return estoque;
     }
 
-    public static double lerTamanhoArquivo() {
-        double tamanho;
+    public static long lerTamanhoArquivo() {
+        long tamanho;
         do {
             System.out.print("Digite o tamanho do arquivo em KB: ");
-            while (!entrada.hasNextDouble()) {
-                System.out.println("Tamanho inválido. Digite um número decimal (use ponto para separar as casas decimais).");
+            while (!entrada.hasNextLong()) {
+                System.out.println("Tamanho inválido. Digite um número inteiro.");
                 entrada.next(); // Limpa a entrada inválida
             }
-            tamanho = entrada.nextDouble();
+            tamanho = entrada.nextLong();
 
             if (tamanho <= 0) {
                 System.out.println("O tamanho do arquivo deve ser maior que zero.");

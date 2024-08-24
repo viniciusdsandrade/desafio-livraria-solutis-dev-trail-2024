@@ -57,7 +57,8 @@ public class LivrariaVirtual {
         }
 
         String titulo, autores, editora;
-        double preco, frete, tamanho;
+        double preco, frete;
+        long tamanho;
         int tipoLivro, estoque;
 
         tipoLivro = lerTipoLivro();
@@ -120,10 +121,10 @@ public class LivrariaVirtual {
         }
 
         String cliente;
-        int idLivro;
+        int idLivro, quantidade;
 
         cliente = lerCliente();
-        listarLivrosSimplificado();
+        listarLivrosSimplificado(); // Chama o metodo para listar os livros
 
         Venda venda = new Venda(cliente);
 
@@ -134,11 +135,20 @@ public class LivrariaVirtual {
             try {
                 Livro livro = buscarLivroPorId(idLivro);
                 if (livro != null) {
-                    venda.addLivro(livro);
-                    if (livro instanceof Impresso) {
-                        ((Impresso) livro).atualizarEstoque();
+                    System.out.print("Quantos exemplares você gostaria de comprar? ");
+                    quantidade = lerQuantidade();
+
+                    if (livro instanceof Impresso && quantidade > ((Impresso) livro).getEstoque()) {
+                        System.out.println("Desculpe, não há estoque suficiente.");
+                    } else if (quantidade > 0) {
+                        venda.addLivro(livro, quantidade); // Passa a quantidade
+                        if (livro instanceof Impresso) {
+                            ((Impresso) livro).atualizarEstoque(quantidade); // Passa a quantidade para atualizar o estoque
+                        }
+                        System.out.println("Livro adicionado à venda!");
+                    } else {
+                        System.out.println("Quantidade inválida.");
                     }
-                    System.out.println("Livro adicionado à venda!");
                 } else {
                     System.out.println("Livro não encontrado!");
                 }
@@ -150,7 +160,7 @@ public class LivrariaVirtual {
 
         try {
             venda.save();
-            vendas[numVendas++] = venda; // Atualiza o vetor de vendas
+            vendas[numVendas++] = venda;
             System.out.println("Venda realizada com sucesso!");
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -160,23 +170,25 @@ public class LivrariaVirtual {
 
     public void listarLivrosSimplificado() {
         try (Connection conn = getConnection()) {
-            String sql = "SELECT l.id, l.titulo, l.preco, " +
-                    "COALESCE(i.estoque, 0) AS estoque " +
-                    "FROM livro l " +
-                    "LEFT JOIN impresso i ON l.id = i.id";
+            String sql = """
+                                        SELECT l.id, l.titulo, l.preco, \
+                                        COALESCE(i.estoque, 0) AS estoque \
+                                        FROM livro l \
+                                        LEFT JOIN impresso i ON l.id = i.id \
+                                        LEFT JOIN eletronico e ON l.id = e.id
+                    """;
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
-            // Verifica se há algum resultado no ResultSet
             if (!rs.isBeforeFirst()) {
                 System.out.println("Não há livros cadastrados.");
-                return; // Sai do metodo se não houver livros
+                return;
             }
 
             System.out.println("Lista de Livros Disponíveis:");
             System.out.println("ID | Título | Preço | Estoque");
-            int id, estoque, quantidade;
+            int id, estoque;
             String titulo;
             double preco;
 
@@ -187,19 +199,6 @@ public class LivrariaVirtual {
                 estoque = rs.getInt("estoque");
 
                 System.out.println(id + " | " + titulo + " | R$ " + preco + " | Estoque: " + estoque);
-
-                // Perguntar ao usuário a quantidade que deseja comprar
-                System.out.print("Quantos exemplares de " + titulo + " você gostaria de comprar? ");
-                quantidade = lerQuantidade();
-
-                if (quantidade > 0 && quantidade <= estoque) {
-                    System.out.println("Você escolheu " + quantidade + " exemplares de " + titulo);
-                    // Aqui você pode continuar o processo de venda com a quantidade escolhida
-                } else if (quantidade > estoque) {
-                    System.out.println("Desculpe, não há estoque suficiente para " + quantidade + " exemplares.");
-                } else {
-                    System.out.println("Nenhum exemplar escolhido.");
-                }
             }
 
         } catch (SQLException e) {
@@ -210,11 +209,13 @@ public class LivrariaVirtual {
 
     public void listarLivros() {
         try (Connection conn = getConnection()) {
-            String sql = "SELECT l.id, l.titulo, l.autores, l.editora, l.preco, l.tipo, " +
-                    "i.frete, i.estoque, e.tamanho " +
-                    "FROM livro l " +
-                    "LEFT JOIN impresso i ON l.id = i.id " +
-                    "LEFT JOIN eletronico e ON l.id = e.id";
+            String sql = """
+                                        SELECT l.id, l.titulo, l.autores, l.editora, l.preco, l.tipo, \
+                                        i.frete, i.estoque, e.tamanho \
+                                        FROM livro l \
+                                        LEFT JOIN impresso i ON l.id = i.id \
+                                        LEFT JOIN eletronico e ON l.id = e.id
+                    """;
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
@@ -227,8 +228,9 @@ public class LivrariaVirtual {
 
             while (rs.next()) {
                 String titulo, autores, editora, tipo;
-                double preco, frete, tamanho;
+                double preco, frete;
                 int id, estoque;
+                long tamanho;
 
                 id = rs.getInt("id");
                 titulo = rs.getString("titulo");
@@ -242,7 +244,7 @@ public class LivrariaVirtual {
                     estoque = rs.getInt("estoque");
                     System.out.println(new Impresso(id, titulo, autores, editora, preco, frete, estoque));
                 } else if (tipo.equals("ELETRONICO")) {
-                    tamanho = rs.getDouble("tamanho");
+                    tamanho = rs.getLong("tamanho");
                     System.out.println(new Eletronico(id, titulo, autores, editora, preco, tamanho));
                 }
             }
@@ -259,19 +261,26 @@ public class LivrariaVirtual {
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                double valor;
-                String cliente;
-                int id, idLivro;
+            int id, idLivro, quantidade;
+            String cliente;
+            double valorTotal;
 
+            while (rs.next()) {
                 id = rs.getInt("id");
                 cliente = rs.getString("cliente");
-                valor = rs.getDouble("valor");
+                valorTotal = rs.getDouble("valor");
 
-                Venda venda = new Venda(cliente);
-                System.out.println("Venda Nº " + id + ", Cliente: " + cliente + ", Valor Total: " + valor);
+                System.out.println("\n------------------------------");
+                System.out.println("Venda Nº " + id);
+                System.out.println("Cliente: " + cliente);
+                System.out.println("Valor Total: R$ " + String.format("%.2f", valorTotal));
+                System.out.println("Livros:");
 
-                String sqlVendaLivros = "SELECT livro_id FROM venda_livro WHERE venda_id = ?";
+                String sqlVendaLivros = """
+                                                SELECT livro_id \
+                                                FROM venda_livro \
+                                                WHERE venda_id = ?
+                        """;
                 PreparedStatement stmtVendaLivros = conn.prepareStatement(sqlVendaLivros);
                 stmtVendaLivros.setInt(1, id);
                 ResultSet rsVendaLivros = stmtVendaLivros.executeQuery();
@@ -280,10 +289,12 @@ public class LivrariaVirtual {
                     idLivro = rsVendaLivros.getInt("livro_id");
                     Livro livro = buscarLivroPorId(idLivro);
                     if (livro != null) {
-                        System.out.println("   " + livro);
+                        quantidade = (int) Math.round(valorTotal / livro.getPreco()); // Calcula a quantidade aproximada
+                        System.out.println("   - " + livro.getTitulo() + " (R$ " + String.format("%.2f", livro.getPreco()) + " x " + quantidade + ")");
                     }
                 }
 
+                System.out.println("------------------------------\n");
                 stmtVendaLivros.close();
             }
 
@@ -304,8 +315,9 @@ public class LivrariaVirtual {
         Livro livro = null;
         if (rs.next()) {
             String titulo, autores, editora, tipo;
-            double preco, frete, tamanho;
+            double preco, frete;
             int estoque;
+            long tamanho;
 
             titulo = rs.getString("titulo");
             autores = rs.getString("autores");
@@ -330,7 +342,7 @@ public class LivrariaVirtual {
                 stmtEletronico.setInt(1, id);
                 ResultSet rsEletronico = stmtEletronico.executeQuery();
                 if (rsEletronico.next()) {
-                    tamanho = rsEletronico.getDouble("tamanho");
+                    tamanho = rsEletronico.getLong("tamanho");
                     livro = new Eletronico(id, titulo, autores, editora, preco, tamanho);
                 }
                 stmtEletronico.close();
