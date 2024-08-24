@@ -4,19 +4,23 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         LivrariaVirtual livraria = new LivrariaVirtual();
         Scanner scanner = new Scanner(System.in);
+        int opcao;
+
+        // Verificação de consistência ao iniciar o sistema
+        livraria.verificarConsistencia();
 
         while (true) {
-            System.out.println("Menu:");
+            System.out.println("\nMenu:");
             System.out.println("1 - Cadastrar livro");
             System.out.println("2 - Realizar uma venda");
             System.out.println("3 - Listar livros");
             System.out.println("4 - Listar vendas");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
-            int opcao = scanner.nextInt();
+            opcao = scanner.nextInt();
             scanner.nextLine(); // Consume newline
 
             switch (opcao) {

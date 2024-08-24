@@ -8,7 +8,7 @@ public class MySQLConnection {
     /**
      * A URL de conexão com o banco de dados MySQL.
      */
-    private static final String URL = "jdbc:mysql://localhost:3306/db_livraria_solutis";
+    private static final String URL = "jdbc:mysql://localhost:3307/db_livraria_solutis";
 
     /**
      * O nome de usuário para autenticação no banco de dados.

@@ -45,15 +45,12 @@ public class Eletronico extends Livro {
 
     @Override
     public String toString() {
-        return "{\n" +
-                "  \"id\": \"" + id + "\",\n" +
-                "  \"titulo\": \"" + titulo + "\",\n" +
-                "  \"autores\": \"" + autores + "\",\n" +
-                "  \"editora\": \"" + editora + "\",\n" +
-                "  \"preco\": \"" + preco + "\",\n" +
-                "  \"tamanho\": \"" + tamanho + "KB\"\n" +
-                "}";
+        return String.format(
+                "ID: %d, Título: %s, Autores: %s, Editora: %s, Preço: %.2f, Tamanho: %.2f KB",
+                id, titulo, autores, editora, preco, tamanho
+        );
     }
+
 }
 
 

@@ -49,9 +49,7 @@ public abstract class Livro {
         stmt.executeUpdate();
 
         ResultSet generatedKeys = stmt.getGeneratedKeys();
-        if (generatedKeys.next()) {
-            id = generatedKeys.getInt(1);
-        }
+        if (generatedKeys.next()) id = generatedKeys.getInt(1);
 
         stmt.close();
         conn.close();
@@ -63,13 +61,10 @@ public abstract class Livro {
 
     @Override
     public String toString() {
-        return "{\n" +
-                "  \"id\": \"" + id + "\",\n" +
-                "  \"titulo\": \"" + titulo + "\",\n" +
-                "  \"autores\": \"" + autores + "\",\n" +
-                "  \"editora\": \"" + editora + "\",\n" +
-                "  \"preco\": \"" + preco + "\"\n" +
-                "}";
+        return String.format(
+                "ID: %d, Título: %s, Autores: %s, Editora: %s, Preço: %.2f",
+                id, titulo, autores, editora, preco
+        );
     }
 
     public double getPreco() {

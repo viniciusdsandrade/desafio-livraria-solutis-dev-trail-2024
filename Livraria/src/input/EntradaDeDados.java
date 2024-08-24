@@ -29,6 +29,7 @@ public class EntradaDeDados {
         return tipoLivro;
     }
 
+
     public static String lerTitulo() {
         System.out.print("Digite o título: ");
         entrada.nextLine(); // Consumir o newline pendente
@@ -49,9 +50,21 @@ public class EntradaDeDados {
         while (true) {
             try {
                 System.out.print("Digite o preço: ");
-                return Double.parseDouble(entrada.nextLine());
+                String input = entrada.nextLine();
+
+                // Substitui a vírgula por ponto, se necessário
+                input = input.replace(",", ".");
+
+                double preco = Double.parseDouble(input);
+
+                // Verifica se o preço é positivo
+                if (preco <= 0) {
+                    System.out.println("O preço não pode ser negativo ou nulo. Tente novamente.");
+                } else {
+                    return preco;
+                }
             } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Digite um número decimal (use ponto para separar as casas decimais).");
+                System.out.println("Entrada inválida. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
             }
         }
     }
@@ -60,15 +73,22 @@ public class EntradaDeDados {
         double frete;
         do {
             System.out.print("Digite o frete: ");
-            while (!entrada.hasNextDouble()) {
-                System.out.println("Frete inválido. Digite um número decimal (use ponto para separar as casas decimais).");
-                entrada.next(); // Limpa a entrada inválida
-            }
-            frete = entrada.nextDouble();
+            String input = entrada.next();
 
-            if (frete < 0) {
-                System.out.println("O frete não pode ser negativo.");
+            // Substitui a vírgula por ponto, se necessário
+            input = input.replace(",", ".");
+
+            try {
+                frete = Double.parseDouble(input);
+
+                if (frete < 0) {
+                    System.out.println("O frete não pode ser negativo.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Frete inválido. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
+                frete = -1; // Força a repetição do loop
             }
+
         } while (frete < 0);
         return frete;
     }
@@ -110,11 +130,27 @@ public class EntradaDeDados {
     public static int lerID() {
         while (true) {
             try {
-                System.out.print("Digite um número inteiro: ");
+                System.out.print("Digite o ID do livro para adicionar à venda (0 para finalizar): ");
                 String input = entrada.nextLine();
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
                 System.out.println("Entrada inválida. Digite um número inteiro.");
+            }
+        }
+    }
+
+    public static int lerQuantidade() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            try {
+                int quantidade = Integer.parseInt(scanner.nextLine());
+                if (quantidade >= 0) {
+                    return quantidade;
+                } else {
+                    System.out.println("Por favor, insira uma quantidade válida (0 ou mais).");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, insira um número válido.");
             }
         }
     }

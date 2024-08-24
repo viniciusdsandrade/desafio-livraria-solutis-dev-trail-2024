@@ -30,9 +30,7 @@ public class Venda {
         stmt.executeUpdate();
 
         ResultSet generatedKeys = stmt.getGeneratedKeys();
-        if (generatedKeys.next()) {
-            id = generatedKeys.getInt(1);
-        }
+        if (generatedKeys.next()) id = generatedKeys.getInt(1);
 
         stmt.close();
 
