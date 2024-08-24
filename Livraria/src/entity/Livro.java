@@ -7,17 +7,17 @@ import java.sql.*;
 /*
     3.1 Livro
     A classe abstrata Livro possui 4 atributos:
-    a) titulo: título do livro;
-    b) autores: nome do autor ou dos autores do livro;
-    c) editora: nome da editora do livro;
-    d) preco: preço do livro.
+        a) titulo: título do livro;
+        b) autores: nome do autor ou dos autores do livro;
+        c) editora: nome da editora do livro;
+        d) preco: preço do livro.
 
     Os métodos de acesso (getters e setters) e o(s) construtor(es) desta
     classe e das demais classes foram omitidos e devem ser implementados
     mesmo que você não os julgue necessário.
 
     O outro metodo obrigatório da classe Livro é descrito a seguir:
-    a) String toString(): devolve uma representação textual dos atributos de umlivro.
+        a) String toString(): devolve uma representação textual dos atributos de umlivro.
  */
 
 public abstract class Livro {
@@ -53,6 +53,7 @@ public abstract class Livro {
         Connection conn = MySQLConnection.getConnection();
         String sql = "INSERT INTO livro (titulo, autores, editora, preco, tipo) VALUES (?, ?, ?, ?, ?)";
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
         stmt.setString(1, titulo);
         stmt.setString(2, autores);
         stmt.setString(3, editora);
@@ -82,10 +83,10 @@ public abstract class Livro {
     public String getEditora() {
         return editora;
     }
+
     public double getPreco() {
         return preco;
     }
-
     public void setAutores(String autores) {
         this.autores = autores;
     }
@@ -100,6 +101,34 @@ public abstract class Livro {
     }
     public void setPreco(double preco) {
         this.preco = preco;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (!(o instanceof Livro that)) return false;
+
+        return this.id == that.id &&
+                Double.compare(this.preco, that.preco) == 0 &&
+                this.titulo.equals(that.titulo) &&
+                this.autores.equals(that.autores) &&
+                this.editora.equals(that.editora);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int hash = id;
+
+        hash *= prime + titulo.hashCode();
+        hash *= prime + autores.hashCode();
+        hash *= prime + editora.hashCode();
+        hash *= prime + Double.hashCode(preco);
+
+        if (hash < 0) hash *= -1;
+
+        return hash;
     }
 
     @Override

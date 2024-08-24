@@ -1,27 +1,29 @@
 import entity.LivrariaVirtual;
 
-import java.sql.SQLException;
-import java.util.Scanner;
+import static input.EntradaDeDados.entrada;
 
 public class Main {
     public static void main(String[] args) {
         LivrariaVirtual livraria = new LivrariaVirtual();
-        Scanner scanner = new Scanner(System.in);
         int opcao;
 
         // Verificação de consistência ao iniciar o sistema
         livraria.verificarConsistencia();
 
+        System.out.println("Bem-vindo à Livraria Virtual!");
+        System.out.println(livraria);
+
         while (true) {
-            System.out.println("\nMenu:");
-            System.out.println("1 - Cadastrar livro");
-            System.out.println("2 - Realizar uma venda");
-            System.out.println("3 - Listar livros");
-            System.out.println("4 - Listar vendas");
-            System.out.println("0 - Sair");
-            System.out.print("Escolha uma opção: ");
-            opcao = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            System.out.print("""
+                     \nMenu:
+                     1 - Cadastrar livro
+                     2 - Realizar uma venda
+                     3 - Listar livros
+                     4 - Listar vendas
+                     0 - Sair
+                    Escolha uma opção:\s""");
+            opcao = entrada.nextInt();
+            entrada.nextLine(); // Consume newline
 
             switch (opcao) {
                 case 1 -> livraria.cadastrarLivro();

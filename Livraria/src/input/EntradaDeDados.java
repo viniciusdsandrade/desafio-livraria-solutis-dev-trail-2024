@@ -2,9 +2,12 @@ package input;
 
 import java.util.Scanner;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+
 public class EntradaDeDados {
 
-    private static final Scanner entrada = new Scanner(System.in);
+    public static final Scanner entrada = new Scanner(System.in);
 
     public static int lerTipoLivro() {
         int tipoLivro;
@@ -29,7 +32,6 @@ public class EntradaDeDados {
         return tipoLivro;
     }
 
-
     public static String lerTitulo() {
         System.out.print("Digite o título: ");
         entrada.nextLine(); // Consumir o newline pendente
@@ -47,6 +49,8 @@ public class EntradaDeDados {
     }
 
     public static double lerPreco() {
+        double preco;
+
         while (true) {
             try {
                 System.out.print("Digite o preço: ");
@@ -55,7 +59,7 @@ public class EntradaDeDados {
                 // Substitui a vírgula por ponto, se necessário
                 input = input.replace(",", ".");
 
-                double preco = Double.parseDouble(input);
+                preco = parseDouble(input);
 
                 // Verifica se o preço é positivo
                 if (preco <= 0) {
@@ -79,7 +83,7 @@ public class EntradaDeDados {
             input = input.replace(",", ".");
 
             try {
-                frete = Double.parseDouble(input);
+                frete = parseDouble(input);
 
                 if (frete < 0) {
                     System.out.println("O frete não pode ser negativo.");
@@ -120,19 +124,18 @@ public class EntradaDeDados {
             }
             tamanho = entrada.nextLong();
 
-            if (tamanho <= 0) {
-                System.out.println("O tamanho do arquivo deve ser maior que zero.");
-            }
+            if (tamanho <= 0) System.out.println("O tamanho do arquivo deve ser maior que zero.");
         } while (tamanho <= 0);
         return tamanho;
     }
 
     public static int lerID() {
+        String input;
         while (true) {
             try {
                 System.out.print("Digite o ID do livro para adicionar à venda (0 para finalizar): ");
-                String input = entrada.nextLine();
-                return Integer.parseInt(input);
+                input = entrada.nextLine();
+                return parseInt(input);
             } catch (NumberFormatException e) {
                 System.out.println("Entrada inválida. Digite um número inteiro.");
             }
@@ -140,15 +143,12 @@ public class EntradaDeDados {
     }
 
     public static int lerQuantidade() {
-        Scanner scanner = new Scanner(System.in);
+        int quantidade;
         while (true) {
             try {
-                int quantidade = Integer.parseInt(scanner.nextLine());
-                if (quantidade >= 0) {
-                    return quantidade;
-                } else {
-                    System.out.println("Por favor, insira uma quantidade válida (0 ou mais).");
-                }
+                quantidade = parseInt(entrada.nextLine());
+                if (quantidade >= 0) return quantidade;
+                else System.out.println("Por favor, insira uma quantidade válida (0 ou mais).");
             } catch (NumberFormatException e) {
                 System.out.println("Por favor, insira um número válido.");
             }
@@ -157,22 +157,6 @@ public class EntradaDeDados {
 
     public static String lerCliente() {
         System.out.print("Digite o nome do cliente: ");
-        return entrada.nextLine();
-    }
-
-    public static double lerDouble(String mensagem) {
-        while (true) {
-            try {
-                System.out.print(mensagem);
-                return Double.parseDouble(entrada.nextLine());
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida. Digite um número decimal (use ponto para separar as casas decimais).");
-            }
-        }
-    }
-
-    public static String lerString(String mensagem) {
-        System.out.print(mensagem);
         return entrada.nextLine();
     }
 }

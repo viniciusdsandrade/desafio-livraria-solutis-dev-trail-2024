@@ -3,22 +3,23 @@ package entity;
 import config.MySQLConnection;
 
 import java.sql.*;
+import java.util.Arrays;
+
+import static java.lang.Double.compare;
 
 /*
-3.4 Venda
-A classe Venda possui 5 atributos:
-    a) livros: um vetor de referências a objetos do tipo Livro. Representa os livros associados a uma venda;
-    b) numVendas: atributo estático que representa a quantidade de vendas
-    realizadas. Deve ser incrementado de 1 sempre que uma nova venda for realizada;
-    c) numero: representa o número da venda. É um valor sequencial com
-    início em 1 e é incrementado a cada venda. Utilize o valor do
-    atributo numVendas para definir o valor desse atributo;
-    d) cliente: nome do cliente que comprou o(s) livro(s);
-    e) valor: valor total da venda. A seguir são descritos os métodos da
-    
-    classe Venda:
-    a) addLivro(l: Livro, index: int): adiciona o livro l na posição index do array livros;
-    b) listarLivros(): lista todos os livros da venda.
+    3.4 Venda
+    A classe Venda possui 5 atributos:
+        a) livros: um vetor de referências a objetos do tipo Livro. Representa os livros associados a uma venda;
+        b) numVendas: atributo estático que representa a quantidade de vendas realizadas. Deve ser incrementado de 1 sempre que uma nova venda for realizada;
+        c) numero: representa o número da venda. É um valor sequencial com início em 1 e é incrementado a cada venda.
+        Utilize o valor do atributo numVendas para definir o valor desse atributo;
+        d) cliente: nome do cliente que comprou o(s) livro(s);
+        e) valor: valor total da venda.
+
+        A seguir são descritos os métodos da classe Venda:
+        a) addLivro(l: Livro, index: int): adiciona o livro l na posição index do array livros;
+        b) listarLivros(): lista todos os livros da venda.
  */
 public class Venda {
     private static int numVendas = 0;
@@ -116,6 +117,36 @@ public class Venda {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+
+        Venda that = (Venda) o;
+
+        return this.id == that.id &&
+                this.numero == that.numero &&
+                compare(this.valor, that.valor) == 0 &&
+                this.cliente.equals(that.cliente) &&
+                Arrays.equals(this.livros, that.livros);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = id;
+
+        result *= prime + numero;
+        result *= prime + cliente.hashCode();
+        result *= prime + Double.hashCode(valor);
+        result *= prime + Arrays.hashCode(livros);
+
+        if (result < 0) result *= -1;
+
+        return result;
+    }
+
+    @Override
     public String toString() {
         StringBuilder json = new StringBuilder();
 
@@ -134,12 +165,9 @@ public class Venda {
             }
         }
 
-        if (json.toString().endsWith(", ")) {
-            json.delete(json.length() - 2, json.length());
-        }
+        if (json.toString().endsWith(", ")) json.delete(json.length() - 2, json.length());
 
-        json.append("]")
-                .append("}");
+        json.append("]").append("}");
 
         return json.toString();
     }

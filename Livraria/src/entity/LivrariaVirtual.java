@@ -5,19 +5,73 @@ import java.sql.*;
 import static config.MySQLConnection.getConnection;
 import static input.EntradaDeDados.*;
 
+/*
+    3.5 LivrariaVirtual
+    A classe LivrariaVitual possui 9 atributos:
+            a) MAX_IMPRESSOS: constante que representa o número máximode livros impressos que podem ser cadastrados;
+            b) MAX_ELETRONICOS: constante que representa o número máximo de livros eletrônicos que podem ser cadastrados;
+            c) MAX_VENDAS: constante que representa o número máximo de vendas que podem ser cadastradas;
+            d) impressos: vetor de referências a objetos da classe Impresso, representa os livros impressos cadastrados;
+            e) eletronicos: vetor de referências a objetos da classe Eletronico, representa os livros eletrônicos cadastrados;
+            f) vendas: vetor de referências a objetos da classe Venda, representa as vendas realizadas;
+            g) numImpressos: número de livros impressos cadastrados;
+            h) numEletronicos: número de livros eletrônicos cadastrados;
+            i) numVendas: número de vendas realizadas.
+
+    A seguir são descritos os métodos da classe LivrariaVirtual:
+
+        a) cadastrarLivro(): este metodo é invocado quando a primeira opção
+        do menu do sistema (Cadastrar livro) for selecionada. O usuário deve
+        informar o tipo de livro que será cadastrado: impresso, eletrônico ou
+        ambos. Depois o sistema deve solicitar os dados do tipo de livro
+        escolhido (ou de ambos). Se não houver mais espaço no vetor para
+        cadastrar um novo livro, o sistema deve exibir uma mensagem;
+
+        b) realizarVenda(): este metodo é invocado quando a segunda opção
+        do menu do sistema (Realizar uma venda) é selecionada. O sistema
+        deve solicitar o nome do cliente e a quantidade de livros que ele
+        deseja comprar. Depois, para cada livro, o sistema deve solicitar seu
+        tipo (impresso ou eletrônico), exibir a lista de livros do tipo escolhido e
+        permitir que o usuário escolha um dos livros dessa lista. Utilize os
+        métodos listarLivrosImpressos() e listarLivrosEletronicos()
+        descritos a seguir;
+
+        c) listarLivrosImpressos(): exibe no vídeo no formato de tabela os
+        dados de todos os livros impressos cadastrados. Utilize o metodo
+        toString() da classe Impresso;
+
+        d) listarLivrosEletronicos(): exibe no vídeo no formato de tabela os
+        dados de todos os livros eletrônicos cadastrados. Utilize o metodo
+        toString() da classe Eletronico;
+
+        e) listarLivros(): este metodo é invocado quando a terceira opção do
+        menu do sistema (Listar livros) é selecionada. O metodo exibe no
+        vídeo os dados de todos os livros impressos e eletrônicos
+        cadastrados. Utilize os métodos listarLivrosImpressos() e
+        listarLivrosEletronicos();
+
+        f) listarVendas(): este metodo é invocado quando a quarta opção do
+        menu do sistema (Listar vendas) é selecionada. O metodo exibe no
+        vídeo os dados de todas as vendas realizadas;
+
+        g) main(args: String[]): este metodo deve instanciar um objeto da
+        classe LivrariaVirtual, exibir repetidamente o menu de opções e
+        invocar os métodos apropriados a partir da seleção do usuário.
+ */
 public class LivrariaVirtual {
 
     private static final int MAX_IMPRESSOS = 100;    // Número máximo de livros impressos que podem ser cadastrados
     private static final int MAX_ELETRONICOS = 100;  // Número máximo de livros eletrônicos que podem ser cadastrados
     private static final int MAX_VENDAS = 100;       // Número máximo de vendas que podem ser cadastradas
 
-    private final Impresso[] impressos = new Impresso[MAX_IMPRESSOS];          // Vetor de livros impressos cadastrados
-    private final Eletronico[] eletronicos = new Eletronico[MAX_ELETRONICOS];  // Vetor de livros eletrônicos cadastrados
-    private final Venda[] vendas = new Venda[MAX_VENDAS];                      // Vetor de vendas realizadas
+    private Impresso[] impressos = new Impresso[MAX_IMPRESSOS];          // Vetor de livros impressos cadastrados
+    private Eletronico[] eletronicos = new Eletronico[MAX_ELETRONICOS];  // Vetor de livros eletrônicos cadastrados
+    private Venda[] vendas = new Venda[MAX_VENDAS];                      // Vetor de vendas realizadas
 
     private int numImpressos = 0;       // Número de livros impressos cadastrados
     private int numEletronicos = 0;     // Número de livros eletrônicos cadastrados
     private int numVendas = 0;          // Número de vendas realizadas
+
 
     public void verificarConsistencia() {
         try (Connection conn = getConnection()) {
@@ -248,7 +302,6 @@ public class LivrariaVirtual {
                     System.out.println(new Eletronico(id, titulo, autores, editora, preco, tamanho));
                 }
             }
-
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.out.println("Erro ao listar os livros!");
@@ -353,5 +406,52 @@ public class LivrariaVirtual {
         conn.close();
 
         return livro;
+    }
+
+    public static int getMaxImpressos() {
+        return MAX_IMPRESSOS;
+    }
+    public static int getMaxEletronicos() {
+        return MAX_ELETRONICOS;
+    }
+    public static int getMaxVendas() {
+        return MAX_VENDAS;
+    }
+    public Eletronico[] getEletronicos() {
+        return eletronicos;
+    }
+    public Impresso[] getImpressos() {
+        return impressos;
+    }
+    public Venda[] getVendas() {
+        return vendas;
+    }
+    public int getNumEletronicos() {
+        return numEletronicos;
+    }
+    public int getNumImpressos() {
+        return numImpressos;
+    }
+    public int getNumVendas() {
+        return numVendas;
+    }
+
+    public void setImpressos(Impresso[] impressos) {
+        this.impressos = impressos;
+    }
+    public void setVendas(Venda[] vendas) {
+        this.vendas = vendas;
+    }
+    public void setEletronicos(Eletronico[] eletronicos) {
+        this.eletronicos = eletronicos;
+    }
+    public void setNumImpressos(int numImpressos) {
+        this.numImpressos = numImpressos;
+    }
+    public void setNumEletronicos(int numEletronicos) {
+        this.numEletronicos = numEletronicos;
+    }
+    public void setNumVendas(int numVendas) {
+        this.numVendas = numVendas;
     }
 }
