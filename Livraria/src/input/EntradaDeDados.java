@@ -9,7 +9,27 @@ public class EntradaDeDados {
 
     public static final Scanner entrada = new Scanner(System.in);
 
-    public static int lerTipoLivro() {
+    public static char lerTipoLivroVenda() {
+        char tipoLivro;
+        do {
+            System.out.print("""
+                    Escolha o tipo de livro:
+                    I - Impresso
+                    E - Eletrônico
+                    S - Sair
+                    Digite a opção desejada:\s""");
+
+            tipoLivro = entrada.next().charAt(0);
+            tipoLivro = Character.toUpperCase(tipoLivro);
+
+            if (tipoLivro != 'I' && tipoLivro != 'E' && tipoLivro != 'S')
+                System.err.println("Opção inválida. Por favor, escolha I, E ou S.");
+        } while (tipoLivro != 'I' && tipoLivro != 'E' && tipoLivro != 'S');
+
+        return tipoLivro;
+    }
+
+    public static int lerTipoLivroCadastro() {
         int tipoLivro;
         do {
             System.out.print("""
@@ -123,16 +143,18 @@ public class EntradaDeDados {
     }
 
     public static int lerID() {
-        String input;
+        int idLivro;
         while (true) {
+            System.out.print("Digite o ID do livro para adicionar à venda: ");
             try {
-                System.out.print("Digite o ID do livro para adicionar à venda (0 para finalizar): ");
-                input = entrada.nextLine();
-                return parseInt(input);
+                entrada.nextLine();
+                idLivro = parseInt(entrada.nextLine());
+                break; // Sai do loop após ler um ID válido
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Digite um número inteiro.");
             }
         }
+        return idLivro;
     }
 
     public static int lerQuantidade() {
