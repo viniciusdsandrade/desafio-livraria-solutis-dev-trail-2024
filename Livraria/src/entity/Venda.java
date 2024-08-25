@@ -147,7 +147,6 @@ public class Venda {
         return result;
     }
 
-    // todo: Implementar o método toString com a correção das vendas
     @Override
     public String toString() {
         StringBuilder json = new StringBuilder();

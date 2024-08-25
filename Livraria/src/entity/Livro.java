@@ -4,6 +4,7 @@ import java.sql.*;
 
 import static config.MySQLConnection.getConnection;
 import static java.lang.Double.compare;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 /*
     3.1 Livro
@@ -53,7 +54,7 @@ public abstract class Livro {
     public void save() throws SQLException {
         Connection conn = getConnection();
         String sql = "INSERT INTO livro (titulo, autores, editora, preco, tipo) VALUES (?, ?, ?, ?, ?)";
-        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement stmt = conn.prepareStatement(sql, RETURN_GENERATED_KEYS);
 
         stmt.setString(1, titulo);
         stmt.setString(2, autores);

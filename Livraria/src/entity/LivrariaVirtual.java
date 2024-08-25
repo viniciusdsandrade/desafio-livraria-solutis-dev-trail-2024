@@ -1,6 +1,7 @@
 package entity;
 
 import java.sql.*;
+import java.util.InputMismatchException;
 
 import static config.MySQLConnection.getConnection;
 import static input.EntradaDeDados.*;
@@ -121,6 +122,14 @@ public class LivrariaVirtual {
             return;
         }
 
+        //Quero fazer uma validação para saber se o número de livros impressos ou eletrônicos é maior que o limite
+
+        if (numImpressos >= MAX_IMPRESSOS || numEletronicos >= MAX_ELETRONICOS) {
+            if (numImpressos >= MAX_IMPRESSOS)
+                System.err.println("Limite de livros impressos cadastrados atingido. Não é possível cadastrar mais livros impressos.");
+            else
+                System.err.println("Limite de livros eletrônicos cadastrados atingido. Não é possível cadastrar mais livros eletrônicos.");
+        }
         String titulo, autores, editora;
         int tipoLivro, estoque;
         double preco, frete;
@@ -141,11 +150,6 @@ public class LivrariaVirtual {
         try {
             Livro livro;
             if (tipoLivro == 1) {
-                if (numImpressos >= MAX_IMPRESSOS) {
-                    System.err.println("Limite de livros impressos cadastrados atingido.");
-                    return;
-                }
-
                 frete = lerFrete();
                 estoque = lerEstoque();
 
@@ -155,12 +159,7 @@ public class LivrariaVirtual {
 
                 impressos[numImpressos++] = (Impresso) livro; // Atualiza o vetor de impressos
             } else if (tipoLivro == 2) {
-                if (numEletronicos >= MAX_ELETRONICOS) {
-                    System.err.println("Limite de livros eletrônicos cadastrados atingido.");
-                    return;
-                }
-
-                tamanho = lerTamanhoArquivo();
+                tamanho = lerTamanhoArquivoEmKB();
 
                 livro = new Eletronico(titulo, autores, editora, preco, tamanho);
                 livro.save();
@@ -179,7 +178,7 @@ public class LivrariaVirtual {
         }
     }
 
-    public void realizarVenda() {
+    public void realizarVenda() throws SQLException {
         if (numVendas >= MAX_VENDAS) {
             System.err.println("Limite de vendas atingido. Não é possível realizar mais vendas.");
             return;
@@ -188,25 +187,44 @@ public class LivrariaVirtual {
         String cliente = lerCliente();
         Venda venda = new Venda(cliente);
 
-        int quantidade = 0;
-        while (quantidade <= 0) {
-            System.out.print("Quantos exemplares você gostaria de comprar? ");
-            quantidade = lerQuantidade();
-            if (quantidade <= 0) System.err.println("Quantidade inválida.");
-        }
+        int quantidade;
+        char tipoLivro;
 
-        char tipoLivro = lerTipoLivroVenda();
+        quantidade = lerQuantidadeExemplares();
+        tipoLivro = lerTipoLivroVenda();
+
+        int idLivro; // Inicializa idLivro com um valor inválido
 
         switch (tipoLivro) {
-            case 'I' -> listarLivrosImpressos();
-            case 'E' -> listarLivrosEletronicos();
+            case 'I' -> {
+                listarLivrosImpressos();
+                do {
+                    idLivro = lerLivroID();
+                    if (!existeLivroImpressoByID(idLivro)) {
+                        System.err.println("ID inválido. Digite um ID de livro impresso.");
+                        idLivro = -1;
+                    }
+                } while (idLivro == -1);
+            }
+            case 'E' -> {
+                listarLivrosEletronicos();
+                do {
+                    idLivro = lerLivroID();
+                    if (!existeLivroEletronicoByID(idLivro)) {
+                        System.err.println("ID inválido. Digite um ID de livro eletrônico.");
+                        idLivro = -1; // Reinicia idLivro para inválido se não encontrar
+                    }
+                } while (idLivro == -1);
+            }
+            case 'S' -> {
+                System.out.println("Operação cancelada.");
+                return; // Sai da venda se a opção for 'S'
+            }
             default -> {
                 System.err.println("Opção inválida.");
                 return; // Sai da venda se a opção for inválida
             }
         }
-
-        int idLivro = lerID();
 
         try {
             Livro livro = buscarLivroPorId(idLivro);
@@ -221,15 +239,14 @@ public class LivrariaVirtual {
                     System.out.println("Livro adicionado à venda!");
                 }
             } else {
-                System.err.println("Livro não encontrado!");
-                return; // Sai da venda se o livro não for encontrado
+                System.err.println("Livro não encontrado! (Isso não deveria acontecer)");
+                return;
             }
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println("Erro ao adicionar o livro à venda!");
-            return; // Sai da venda em caso de erro
+            return;
         }
-
         try {
             venda.save();
             vendas[numVendas++] = venda;
@@ -237,6 +254,38 @@ public class LivrariaVirtual {
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println("Erro ao realizar a venda!");
+        }
+    }
+
+    private boolean existeLivroImpressoByID(int idLivro) throws SQLException {
+        String sql = """
+                        SELECT 1
+                        FROM livro l
+                        JOIN impresso i ON l.id = i.id
+                        WHERE l.id = ? AND l.tipo = 'IMPRESSO'
+                """;
+        try (Connection connection = getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, idLivro);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private boolean existeLivroEletronicoByID(int idLivro) throws SQLException {
+        String sql = """
+                                SELECT 1
+                                FROM livro l
+                                JOIN eletronico e ON l.id = e.id
+                                WHERE l.id = ? AND l.tipo = 'ELETRONICO'
+                """;
+        try (Connection connection = getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, idLivro);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 
@@ -258,23 +307,26 @@ public class LivrariaVirtual {
             }
 
             System.out.println("Livros Impressos:");
-            System.out.println("-------------------------------------------------------------------");
+            System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------");
+
+            int id, estoque;
+            String titulo, autores, editora;
+            double preco, frete;
 
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String titulo = rs.getString("titulo");
-                String autores = rs.getString("autores");
-                String editora = rs.getString("editora");
-                double preco = rs.getDouble("preco");
-                double frete = rs.getDouble("frete");
-                int estoque = rs.getInt("estoque");
+                id = rs.getInt("id");
+                titulo = rs.getString("titulo");
+                autores = rs.getString("autores");
+                editora = rs.getString("editora");
+                preco = rs.getDouble("preco");
+                frete = rs.getDouble("frete");
+                estoque = rs.getInt("estoque");
 
                 // Utiliza o metodo toString() da classe Impresso
                 Impresso impresso = new Impresso(id, titulo, autores, editora, preco, frete, estoque);
                 System.out.println(impresso);
             }
-            System.out.println("-------------------------------------------------------------------");
-
+            System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------");
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println("Erro ao listar os livros impressos!");
@@ -299,22 +351,26 @@ public class LivrariaVirtual {
             }
 
             System.out.println("Livros Eletrônicos:");
-            System.out.println("-------------------------------------------------------------------");
+            System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------");
+
+            String titulo, autores, editora;
+            double preco;
+            long tamanho;
+            int id;
 
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String titulo = rs.getString("titulo");
-                String autores = rs.getString("autores");
-                String editora = rs.getString("editora");
-                double preco = rs.getDouble("preco");
-                long tamanho = rs.getLong("tamanho");
+                id = rs.getInt("id");
+                titulo = rs.getString("titulo");
+                autores = rs.getString("autores");
+                editora = rs.getString("editora");
+                preco = rs.getDouble("preco");
+                tamanho = rs.getLong("tamanho");
 
                 // Utiliza o metodo toString() da classe Eletronico
                 Eletronico eletronico = new Eletronico(id, titulo, autores, editora, preco, tamanho);
                 System.out.println(eletronico);
             }
-            System.out.println("-------------------------------------------------------------------");
-
+            System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------");
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println("Erro ao listar os livros eletrônicos!");
@@ -368,7 +424,6 @@ public class LivrariaVirtual {
                 System.out.println("------------------------------------------------------------\n");
                 stmtVendaLivros.close();
             }
-
             stmt.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -383,13 +438,13 @@ public class LivrariaVirtual {
         stmt.setInt(1, id);
         ResultSet rs = stmt.executeQuery();
 
+        String titulo, autores, editora, tipo;
+        double preco, frete;
+        int estoque;
+        long tamanho;
+
         Livro livro = null;
         if (rs.next()) {
-            String titulo, autores, editora, tipo;
-            double preco, frete;
-            int estoque;
-            long tamanho;
-
             titulo = rs.getString("titulo");
             autores = rs.getString("autores");
             editora = rs.getString("editora");
@@ -443,19 +498,26 @@ public class LivrariaVirtual {
                      0 - Sair
                     Escolha uma opção:\s""");
 
-            opcao = entrada.nextInt();
-            entrada.nextLine(); // Consume newline
+            try {
+                opcao = entrada.nextInt();
+                entrada.nextLine(); // Consume newline
 
-            switch (opcao) {
-                case 1 -> livraria.cadastrarLivro();
-                case 2 -> livraria.realizarVenda();
-                case 3 -> livraria.listarLivros();
-                case 4 -> livraria.listarVendas();
-                case 0 -> {
-                    System.out.println("Saindo...");
-                    return;
+                switch (opcao) {
+                    case 1 -> livraria.cadastrarLivro();
+                    case 2 -> livraria.realizarVenda();
+                    case 3 -> livraria.listarLivros();
+                    case 4 -> livraria.listarVendas();
+                    case 0 -> {
+                        System.out.println("Saindo...");
+                        return;
+                    }
+                    default -> System.err.println("Opção inválida!");
                 }
-                default -> System.err.println("Opção inválida!");
+            } catch (InputMismatchException e) {
+                System.err.println("Entrada inválida. Por favor, digite um número.");
+                entrada.nextLine(); // Limpa o buffer
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         }
     }

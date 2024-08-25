@@ -2,6 +2,7 @@ package input;
 
 import java.util.Scanner;
 
+import static java.lang.Character.toUpperCase;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
@@ -12,6 +13,7 @@ public class EntradaDeDados {
     public static char lerTipoLivroVenda() {
         char tipoLivro;
         do {
+
             System.out.print("""
                     Escolha o tipo de livro:
                     I - Impresso
@@ -20,7 +22,7 @@ public class EntradaDeDados {
                     Digite a opção desejada:\s""");
 
             tipoLivro = entrada.next().charAt(0);
-            tipoLivro = Character.toUpperCase(tipoLivro);
+            tipoLivro = toUpperCase(tipoLivro);
 
             if (tipoLivro != 'I' && tipoLivro != 'E' && tipoLivro != 'S')
                 System.err.println("Opção inválida. Por favor, escolha I, E ou S.");
@@ -43,6 +45,7 @@ public class EntradaDeDados {
                 System.err.println("Opção inválida. Digite um número inteiro (1, 2 ou 3).");
                 entrada.next(); // Limpa a entrada inválida do scanner
             }
+
             tipoLivro = entrada.nextInt();
 
             if (tipoLivro < 1 || tipoLivro > 3)
@@ -54,7 +57,7 @@ public class EntradaDeDados {
 
     public static String lerTitulo() {
         System.out.print("Digite o título: ");
-        entrada.nextLine(); // Consumir o newline pendente
+        entrada.nextLine();
         return entrada.nextLine();
     }
 
@@ -81,8 +84,10 @@ public class EntradaDeDados {
                 preco = parseDouble(input);
 
                 // Verifica se o preço é positivo
-                if (preco <= 0) System.err.println("O preço não pode ser negativo ou nulo. Tente novamente.");
-                else return preco;
+                if (preco <= 0)
+                    System.err.println("O preço não pode ser negativo ou nulo. Tente novamente.");
+                else
+                    return preco;
             } catch (NumberFormatException e) {
                 System.err.println("Entrada inválida. Digite um número decimal (use vírgula ou ponto para separar as casas decimais).");
             }
@@ -126,7 +131,7 @@ public class EntradaDeDados {
         return estoque;
     }
 
-    public static long lerTamanhoArquivo() {
+    public static long lerTamanhoArquivoEmKB() {
         long tamanho;
         do {
             System.out.print("Digite o tamanho do arquivo em KB: ");
@@ -142,24 +147,32 @@ public class EntradaDeDados {
         return tamanho;
     }
 
-    public static int lerID() {
-        int idLivro;
-        while (true) {
+    public static int lerLivroID() {
+        int idLivro = -1;
+        do {
             System.out.print("Digite o ID do livro para adicionar à venda: ");
-            try {
-                entrada.nextLine();
-                idLivro = parseInt(entrada.nextLine());
-                break; // Sai do loop após ler um ID válido
-            } catch (NumberFormatException e) {
+            if (entrada.hasNextInt()) {
+                idLivro = entrada.nextInt();
+                if (idLivro <= 0) { // Verifica se o ID é positivo
+                    System.err.println("ID inválido. Digite um número inteiro positivo.");
+                }
+            } else {
                 System.err.println("Entrada inválida. Digite um número inteiro.");
+                entrada.next(); // Limpa a entrada inválida do buffer
             }
-        }
+        } while (idLivro <= 0);
         return idLivro;
     }
 
-    public static int lerQuantidade() {
+    public static String lerCliente() {
+        System.out.print("Digite o nome do cliente: ");
+        return entrada.nextLine();
+    }
+
+    public static int lerQuantidadeExemplares() {
         int quantidade;
         while (true) {
+            System.out.print("Digite a quantidade de exemplares: ");
             try {
                 quantidade = parseInt(entrada.nextLine());
                 if (quantidade >= 0) return quantidade;
@@ -168,10 +181,5 @@ public class EntradaDeDados {
                 System.err.println("Por favor, insira um número válido.");
             }
         }
-    }
-
-    public static String lerCliente() {
-        System.out.print("Digite o nome do cliente: ");
-        return entrada.nextLine();
     }
 }

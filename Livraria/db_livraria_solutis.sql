@@ -72,13 +72,16 @@ SELECT l.id,
        CASE
            WHEN l.tipo = 'IMPRESSO' THEN COALESCE(i.estoque, 0)
            WHEN l.tipo = 'ELETRONICO' THEN NULL
-           END AS estoque,
-       IF(l.tipo = 'ELETRONICO', e.tamanho, NULL) AS tamanho_kb
+           END                                    AS estoque,
+       IF(l.tipo = 'ELETRONICO', e.tamanho, NULL) AS tamanho_kb,
+       CASE
+           WHEN l.tipo = 'IMPRESSO' THEN 'IMPRESSO'
+           WHEN l.tipo = 'ELETRONICO' THEN 'ELETRONICO'
+           END                                    AS tipo
 FROM livro l
          LEFT JOIN impresso i ON l.id = i.id
          LEFT JOIN eletronico e ON l.id = e.id;
 
--- Consultas para contar o total de livros impressos, eletrônicos e vendas
 -- Contar o total de livros impressos
 SELECT COUNT(*) AS total_livro_impresso
 FROM impresso;
@@ -91,7 +94,6 @@ FROM eletronico;
 SELECT COUNT(*) AS total_venda
 FROM venda;
 
-
 -- Inserindo 10 livros impressos
 INSERT INTO livro (titulo, autores, editora, preco, tipo)
 VALUES ('Dom Quixote', 'Miguel de Cervantes', 'Companhia das Letras', 49.90, 'IMPRESSO'),
@@ -102,8 +104,7 @@ VALUES ('Dom Quixote', 'Miguel de Cervantes', 'Companhia das Letras', 49.90, 'IM
        ('O Hobbit', 'J.R.R. Tolkien', 'HarperCollins', 49.90, 'IMPRESSO'),
        ('Orgulho e Preconceito', 'Jane Austen', 'Penguin', 29.90, 'IMPRESSO'),
        ('Cem Anos de Solidão', 'Gabriel García Márquez', 'Companhia das Letras', 59.90, 'IMPRESSO'),
-       ('Crime e Castigo', 'Fiodor Dostoiévski', 'L&PM', 39.90, 'IMPRESSO'),
-       ('O Alienista', 'Machado de Assis', 'Martin Claret', 24.90, 'IMPRESSO');
+       ('Crime e Castigo', 'Fiodor Dostoiévski', 'L&PM', 39.90, 'IMPRESSO');
 
 INSERT INTO impresso (id, frete, estoque)
 VALUES (1, 10.00, 100),
@@ -114,10 +115,9 @@ VALUES (1, 10.00, 100),
        (6, 11.00, 60),
        (7, 7.00, 40),
        (8, 13.00, 70),
-       (9, 10.00, 90),
-       (10, 8.00, 120);
+       (9, 10.00, 90);
 
--- Inserindo 20 livros eletrônicos
+-- Inserindo 19 livros eletrônicos
 INSERT INTO livro (titulo, autores, editora, preco, tipo)
 VALUES ('O Alquimista', 'Paulo Coelho', 'HarperCollins', 19.90, 'ELETRONICO'),
        ('A Menina que Roubava Livros', 'Markus Zusak', 'Companhia das Letras', 24.90, 'ELETRONICO'),
@@ -137,27 +137,25 @@ VALUES ('O Alquimista', 'Paulo Coelho', 'HarperCollins', 19.90, 'ELETRONICO'),
        ('Harry Potter e a Ordem da Fênix', 'J.K. Rowling', 'Rocco', 24.90, 'ELETRONICO'),
        ('Harry Potter e o Enigma do Príncipe', 'J.K. Rowling', 'Rocco', 24.90, 'ELETRONICO'),
        ('Harry Potter e as Relíquias da Morte', 'J.K. Rowling', 'Rocco', 24.90, 'ELETRONICO'),
-       ('Percy Jackson e o Ladrão de Raios', 'Rick Riordan', 'Intrínseca', 22.90, 'ELETRONICO'),
-       ('Percy Jackson e o Mar de Monstros', 'Rick Riordan', 'Intrínseca', 22.90, 'ELETRONICO');
+       ('Percy Jackson e o Ladrão de Raios', 'Rick Riordan', 'Intrínseca', 22.90, 'ELETRONICO');
 
 INSERT INTO eletronico (id, tamanho)
-VALUES (11, 5000),
-       (12, 6000),
-       (13, 4500),
-       (14, 7000),
-       (15, 5500),
-       (16, 6500),
-       (17, 4000),
-       (18, 7500),
-       (19, 5000),
-       (20, 6000),
-       (21, 4500),
-       (22, 7000),
-       (23, 5500),
-       (24, 6500),
-       (25, 4000),
-       (26, 7500),
-       (27, 5000),
-       (28, 6000),
-       (29, 4500),
-       (30, 7000);
+VALUES (10, 5000),
+       (11, 6000),
+       (12, 4500),
+       (13, 7000),
+       (14, 5500),
+       (15, 6500),
+       (16, 4000),
+       (17, 7500),
+       (18, 5000),
+       (19, 6000),
+       (20, 4500),
+       (21, 7000),
+       (22, 5500),
+       (23, 6500),
+       (24, 4000),
+       (25, 7500),
+       (26, 5000),
+       (27, 6000),
+       (28, 4500);
