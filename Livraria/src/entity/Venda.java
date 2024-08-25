@@ -31,7 +31,7 @@ public class Venda {
 
     public Venda(String cliente) {
         this.cliente = cliente;
-        this.livros = new Livro[100]; // Tamanho inicial do vetor, pode ser ajustado
+        this.livros = new Livro[50]; // Numero de livros por venda
         this.numero = ++numVendas;
         this.valor = 0;
     }
@@ -147,6 +147,7 @@ public class Venda {
         return result;
     }
 
+    // todo: Implementar o método toString com a correção das vendas
     @Override
     public String toString() {
         StringBuilder json = new StringBuilder();

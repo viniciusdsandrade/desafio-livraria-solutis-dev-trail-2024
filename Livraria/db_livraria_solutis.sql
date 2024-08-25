@@ -87,41 +87,72 @@ FROM eletronico;
 SELECT COUNT(*) AS total_venda
 FROM venda;
 
--- Criar uma função para calcular o novo estoque com base na operação (adição ou subtração)
-DELIMITER //
-CREATE FUNCTION calcular_novo_estoque(id_livro BIGINT, quantidade INT, tipo_operacao VARCHAR(3))
-    RETURNS INT
-BEGIN
-    DECLARE estoque_atual INT;
-    DECLARE novo_estoque INT;
 
-    -- Obtem o estoque atual do livro
-    SELECT i.estoque INTO estoque_atual FROM impresso i WHERE i.id = id_livro;
+-- Primeiro insira 21 livros na tabela 'livro' com tipo 'ELETRONICO'
+INSERT INTO livro (titulo, autores, editora, preco, tipo)
+VALUES ('Dom Casmurro', 'Machado de Assis', 'Editora A', 19.99, 'ELETRONICO'),
+       ('Memórias Póstumas de Brás Cubas', 'Machado de Assis', 'Editora B', 15.99, 'ELETRONICO'),
+       ('Vidas Secas', 'Graciliano Ramos', 'Editora C', 12.99, 'ELETRONICO'),
+       ('O Cortiço', 'Aluísio Azevedo', 'Editora D', 17.99, 'ELETRONICO'),
+       ('Iracema', 'José de Alencar', 'Editora E', 10.99, 'ELETRONICO'),
+       ('A Hora da Estrela', 'Clarice Lispector', 'Editora F', 14.99, 'ELETRONICO'),
+       ('Capitães da Areia', 'Jorge Amado', 'Editora G', 18.99, 'ELETRONICO'),
+       ('Gabriela, Cravo e Canela', 'Jorge Amado', 'Editora H', 16.99, 'ELETRONICO'),
+       ('Dona Flor e Seus Dois Maridos', 'Jorge Amado', 'Editora I', 19.99, 'ELETRONICO'),
+       ('O Alienista', 'Machado de Assis', 'Editora J', 11.99, 'ELETRONICO'),
+       ('Quincas Borba', 'Machado de Assis', 'Editora K', 13.99, 'ELETRONICO'),
+       ('Esaú e Jacó', 'Machado de Assis', 'Editora L', 15.99, 'ELETRONICO'),
+       ('Memorial de Aires', 'Machado de Assis', 'Editora M', 17.99, 'ELETRONICO'),
+       ('Triste Fim de Policarpo Quaresma', 'Lima Barreto', 'Editora N', 12.99, 'ELETRONICO'),
+       ('O Guarani', 'José de Alencar', 'Editora O', 10.99, 'ELETRONICO'),
+       ('Ubirajara', 'José de Alencar', 'Editora P', 14.99, 'ELETRONICO'),
+       ('Lucíola', 'José de Alencar', 'Editora Q', 16.99, 'ELETRONICO'),
+       ('Senhora', 'José de Alencar', 'Editora R', 18.99, 'ELETRONICO'),
+       ('O Primo Basílio', 'Eça de Queirós', 'Editora S', 11.99, 'ELETRONICO'),
+       ('A Relíquia', 'Eça de Queirós', 'Editora T', 13.99, 'ELETRONICO');
+--      ('Os Maias', 'Eça de Queirós', 'Editora U', 15.99, 'ELETRONICO');
 
-    -- Calcula o novo estoque com base no tipo de operação
-    IF tipo_operacao = 'ADD' THEN
-        SET novo_estoque = estoque_atual + quantidade;
-    ELSEIF tipo_operacao = 'SUB' THEN
-        SET novo_estoque = estoque_atual - quantidade;
-    ELSE
-        -- Tipo de operação inválido, retorna o estoque atual
-        SET novo_estoque = estoque_atual;
-    END IF;
+-- Em seguida, insira os dados na tabela 'eletronico' usando o ID do livro recém-inserido
+INSERT INTO eletronico (id, tamanho)
+VALUES (LAST_INSERT_ID() - 20, 2048),
+       (LAST_INSERT_ID() - 19, 1536),
+       (LAST_INSERT_ID() - 18, 3072),
+       (LAST_INSERT_ID() - 17, 1024),
+       (LAST_INSERT_ID() - 16, 2560),
+       (LAST_INSERT_ID() - 15, 1280),
+       (LAST_INSERT_ID() - 14, 4096),
+       (LAST_INSERT_ID() - 13, 1792),
+       (LAST_INSERT_ID() - 12, 3584),
+       (LAST_INSERT_ID() - 11, 896),
+       (LAST_INSERT_ID() - 10, 2304),
+       (LAST_INSERT_ID() - 9, 1152),
+       (LAST_INSERT_ID() - 8, 3328),
+       (LAST_INSERT_ID() - 7, 768),
+       (LAST_INSERT_ID() - 6, 2176),
+       (LAST_INSERT_ID() - 5, 1088),
+       (LAST_INSERT_ID() - 4, 3168),
+       (LAST_INSERT_ID() - 3, 640),
+       (LAST_INSERT_ID() - 2, 1920),
+       (LAST_INSERT_ID() - 1, 960);
+--    (LAST_INSERT_ID(), 2880);
 
-    RETURN novo_estoque;
-END //
-DELIMITER ;
+-- Inserir 10 livros impressos
+INSERT INTO livro (titulo, autores, editora, preco, tipo)
+VALUES ('Livro Impresso 1', 'Autor 1', 'Editora X', 30.00, 'IMPRESSO'),
+       ('Livro Impresso 2', 'Autor 2', 'Editora Y', 25.50, 'IMPRESSO'),
+       ('Livro Impresso 3', 'Autor 3', 'Editora Z', 40.00, 'IMPRESSO'),
+       ('Livro Impresso 4', 'Autor 4', 'Editora A', 22.99, 'IMPRESSO'),
+       ('Livro Impresso 5', 'Autor 5', 'Editora B', 35.00, 'IMPRESSO'),
+       ('Livro Impresso 6', 'Autor 6', 'Editora C', 28.75, 'IMPRESSO'),
+       ('Livro Impresso 7', 'Autor 7', 'Editora D', 32.50, 'IMPRESSO'),
+       ('Livro Impresso 8', 'Autor 8', 'Editora E', 27.00, 'IMPRESSO'),
+       ('Livro Impresso 9', 'Autor 9', 'Editora F', 38.00, 'IMPRESSO'),
+       ('Livro Impresso 10', 'Autor 10', 'Editora G', 29.99, 'IMPRESSO');
 
--- Criar um trigger para atualizar o estoque na tabela 'impresso' após a inserção em 'venda_livro'
-DELIMITER //
-CREATE TRIGGER tr_atualizar_estoque_impresso_apos
-    AFTER INSERT
-    ON venda_livro
-    FOR EACH ROW
-BEGIN
-    -- Atualiza o estoque do livro na tabela 'impresso'
-    UPDATE impresso
-    SET estoque = calcular_novo_estoque(NEW.livro_id, 1, 'SUB')
-    WHERE id = NEW.livro_id;
-END //
-DELIMITER ;
+-- Inserir dados na tabela 'impresso'
+INSERT INTO impresso (id, frete, estoque)
+SELECT id, 10.00, 50
+FROM livro
+WHERE tipo = 'IMPRESSO'
+ORDER BY id DESC
+LIMIT 10;
