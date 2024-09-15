@@ -63,7 +63,6 @@ public class Impresso extends Livro {
         }
     }
 
-
     @Override
     protected String getTipo() {
         return "IMPRESSO";

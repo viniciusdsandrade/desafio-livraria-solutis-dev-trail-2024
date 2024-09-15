@@ -75,23 +75,9 @@ public class LivrariaVirtual {
 
     public void verificarConsistencia() {
         try (Connection conn = getConnection()) {
-            // Verificar contagem de livros impressos
-            String sqlImpressos = "SELECT COUNT(*) AS total FROM impresso";
-            PreparedStatement stmtImpressos = conn.prepareStatement(sqlImpressos);
-            ResultSet rsImpressos = stmtImpressos.executeQuery();
-            if (rsImpressos.next()) numImpressos = rsImpressos.getInt("total");
-
-            // Verificar contagem de livros eletrônicos
-            String sqlEletronicos = "SELECT COUNT(*) AS total FROM eletronico";
-            PreparedStatement stmtEletronicos = conn.prepareStatement(sqlEletronicos);
-            ResultSet rsEletronicos = stmtEletronicos.executeQuery();
-            if (rsEletronicos.next()) numEletronicos = rsEletronicos.getInt("total");
-
-            // Verificar contagem de vendas
-            String sqlVendas = "SELECT COUNT(*) AS total FROM venda";
-            PreparedStatement stmtVendas = conn.prepareStatement(sqlVendas);
-            ResultSet rsVendas = stmtVendas.executeQuery();
-            if (rsVendas.next()) numVendas = rsVendas.getInt("total");
+            int numImpressos = contarRegistros(conn, "impresso");
+            int numEletronicos = contarRegistros(conn, "eletronico");
+            int numVendas = contarRegistros(conn, "venda");
 
             StringBuilder inconsistencias = new StringBuilder();
 
@@ -99,21 +85,32 @@ public class LivrariaVirtual {
             if (numEletronicos > MAX_ELETRONICOS) inconsistencias.append("Limite de livros eletrônicos excedido.\n");
             if (numVendas > MAX_VENDAS) inconsistencias.append("Limite de vendas excedido.\n");
 
-            if (!inconsistencias.isEmpty()) {
-                System.err.println("Inconsistência(s) detectada(s) no sistema:");
-                System.err.println(inconsistencias);
-            } else {
+            if (inconsistencias.isEmpty()) {
                 System.out.printf("""
                         Consistência verificada:\s
                         Livros impressos cadastrados: %d\s
                         Livros eletrônicos cadastrados: %d\s
                         Vendas realizadas: %d\s
                         """, numImpressos, numEletronicos, numVendas);
+            } else {
+                System.err.println("Inconsistência(s) detectada(s) no sistema:");
+                System.err.println(inconsistencias);
             }
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println("Erro ao verificar a consistência do sistema!");
         }
+    }
+
+    private int contarRegistros(Connection conn, String tabela) throws SQLException {
+        String sql = String.format("SELECT COUNT(*) AS total FROM %s", tabela);
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        }
+        return 0;
     }
 
     public void cadastrarLivro() {
@@ -122,14 +119,13 @@ public class LivrariaVirtual {
             return;
         }
 
-        //Quero fazer uma validação para saber se o número de livros impressos ou eletrônicos é maior que o limite
-
         if (numImpressos >= MAX_IMPRESSOS || numEletronicos >= MAX_ELETRONICOS) {
             if (numImpressos >= MAX_IMPRESSOS)
                 System.err.println("Limite de livros impressos cadastrados atingido. Não é possível cadastrar mais livros impressos.");
             else
                 System.err.println("Limite de livros eletrônicos cadastrados atingido. Não é possível cadastrar mais livros eletrônicos.");
         }
+
         String titulo, autores, editora;
         int tipoLivro, estoque;
         double preco, frete;
@@ -525,35 +521,27 @@ public class LivrariaVirtual {
     public static int getMaxImpressos() {
         return MAX_IMPRESSOS;
     }
-
     public static int getMaxEletronicos() {
         return MAX_ELETRONICOS;
     }
-
     public static int getMaxVendas() {
         return MAX_VENDAS;
     }
-
     public Eletronico[] getEletronicos() {
         return eletronicos;
     }
-
     public Impresso[] getImpressos() {
         return impressos;
     }
-
     public Venda[] getVendas() {
         return vendas;
     }
-
     public int getNumEletronicos() {
         return numEletronicos;
     }
-
     public int getNumImpressos() {
         return numImpressos;
     }
-
     public int getNumVendas() {
         return numVendas;
     }
@@ -561,23 +549,18 @@ public class LivrariaVirtual {
     public void setImpressos(Impresso[] impressos) {
         this.impressos = impressos;
     }
-
     public void setVendas(Venda[] vendas) {
         this.vendas = vendas;
     }
-
     public void setEletronicos(Eletronico[] eletronicos) {
         this.eletronicos = eletronicos;
     }
-
     public void setNumImpressos(int numImpressos) {
         this.numImpressos = numImpressos;
     }
-
     public void setNumEletronicos(int numEletronicos) {
         this.numEletronicos = numEletronicos;
     }
-
     public void setNumVendas(int numVendas) {
         this.numVendas = numVendas;
     }
